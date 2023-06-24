@@ -1,0 +1,51 @@
+/ {
+	pwmdrv {
+		compatible = "pwm-leds";
+		pwm_driver: pwm_drv {
+			pwms = <&pwm1 0 PWM_KHZ(10) 0>;
+		};
+	};
+
+	in {
+		compatible = "gpio-leds";
+		in_pin_1: in_1 {
+			gpios = <&gpio0 22 GPIO_ACTIVE_LOW>;
+			label = "in 1";
+		};
+
+		in_pin_2: in_2 {
+			gpios = <&gpio0 24 GPIO_ACTIVE_LOW>;
+			label = "in 2";
+		};
+	};
+
+	aliases {
+		pwm-drv = &pwm_driver;
+		in1 = &in_pin_1;
+		in2 = &in_pin_2;
+	};
+
+};
+
+&pinctrl{
+	pwm1_default: pwm1_default {
+		group1 {
+			psels = <NRF_PSEL(PWM_OUT0, 0, 15)>;
+			nordic,invert;
+		};
+	};
+	pwm1_sleep: pwm1_sleep {
+		group1 {
+			psels = <NRF_PSEL(PWM_OUT0, 0, 15)>;
+			low-power-enable;
+		};
+	};
+};
+
+&pwm1 {
+	status = "okay";
+	pinctrl-0 = <&pwm1_default>;
+	pinctrl-1 = <&pwm1_sleep>;
+	pinctrl-names = "default", "sleep";
+
+};
