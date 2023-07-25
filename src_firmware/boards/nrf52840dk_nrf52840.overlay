@@ -17,18 +17,12 @@
 			gpios = <&gpio0 24 GPIO_ACTIVE_LOW>;
 			label = "in 2";
 		};
-
-		out_pin_boot: out_boot {
-			gpios = <&gpio0 19 GPIO_ACTIVE_HIGH>;
-			label = "out boot";
-		};
 	};
 
 	aliases {
 		pwm-drv = &pwm_driver;
 		in1 = &in_pin_1;
 		in2 = &in_pin_2;
-		outboot = &out_pin_boot;
 	};
 
 };
@@ -36,13 +30,13 @@
 &pinctrl{
 	pwm1_default: pwm1_default {
 		group1 {
-			psels = <NRF_PSEL(PWM_OUT0, 0, 15)>;
+			psels = <NRF_PSEL(PWM_OUT0, 0, 13)>;
 			nordic,invert;
 		};
 	};
 	pwm1_sleep: pwm1_sleep {
 		group1 {
-			psels = <NRF_PSEL(PWM_OUT0, 0, 15)>;
+			psels = <NRF_PSEL(PWM_OUT0, 0, 13)>;
 			low-power-enable;
 		};
 	};
