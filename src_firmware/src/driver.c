@@ -2,12 +2,6 @@
 #include <zephyr/drivers/gpio.h>
 #include "driver.h"
 
-
-
-
-
-
-
 volatile static int32_t speed_mrpm = 0;
 volatile static int32_t max_mrpm = 0;
 
@@ -15,10 +9,10 @@ volatile static int period = 0;
 
 volatile static bool drv_initialised = false;
 
-static const struct pwm_dt_spec pwm_motor_driver = PWM_DT_SPEC_GET(DT_ALIAS(pwm_drv));
+static const struct pwm_dt_spec pwm_motor_driver = PWM_DT_SPEC_GET(DT_ALIAS(pwm_drv_ch1));
 
-static const struct gpio_dt_spec in1 = GPIO_DT_SPEC_GET(DT_ALIAS(in1), gpios);
-static const struct gpio_dt_spec out_boot = GPIO_DT_SPEC_GET(DT_ALIAS(outboot), gpios);
+static const struct gpio_dt_spec set_dir_p1 = GPIO_DT_SPEC_GET(DT_ALIAS(set_dir_p1_ch1), gpios);
+static const struct gpio_dt_spec out_boot = GPIO_DT_SPEC_GET(DT_ALIAS(enter_boot_p), gpios);
 
 
 int init_pwm_motor_driver(uint32_t speed_max_mrpm){
@@ -37,11 +31,11 @@ int init_pwm_motor_driver(uint32_t speed_max_mrpm){
         }
 
 
-        if (!gpio_is_ready_dt(&in1)) {
+        if (!gpio_is_ready_dt(&set_dir_p1)) {
                 return GPIO_OUT_DIR_CNTRL_1_CHNL1_NOT_READY;
 	}
 
-	ret = gpio_pin_configure_dt(&in1, GPIO_OUTPUT_ACTIVE);
+	ret = gpio_pin_configure_dt(&set_dir_p1, GPIO_OUTPUT_ACTIVE);
 
         if (0 != ret) {
                 return UNABLE_TO_SET_GPIO;
