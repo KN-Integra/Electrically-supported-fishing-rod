@@ -1,0 +1,12 @@
+Change Component Designator: OldDesignator= NewDesignator=*
+Change Designator: Invalid Designator
+Added Member To Class: ClassName=pakiet_schemat Member=Component * ON OFF
+Added Member To Class: ClassName=pakiet_schemat Member=Component * 5V2A
+Added Member To Class: ClassName=pakiet_schemat Member=Component * 5V2A
+Added Member To Class: ClassName=pakiet_schemat Member=Component * 5V2A
+Added Member To Class: ClassName=pakiet_schemat Member=Component * 5V2A
+Added Member To Class: ClassName=pakiet_schemat Member=Component  BMS 4S
+Added Member To Class: ClassName=pakiet_schemat Member=Component  koszyczek SMD
+Added Member To Class: ClassName=pakiet_schemat Member=Component  switch_ekran
+Added Member To Class: ClassName=pakiet_schemat Member=Component  xt-60
+Added Member To Class: ClassName=pakiet_schemat Member=Component  ekran

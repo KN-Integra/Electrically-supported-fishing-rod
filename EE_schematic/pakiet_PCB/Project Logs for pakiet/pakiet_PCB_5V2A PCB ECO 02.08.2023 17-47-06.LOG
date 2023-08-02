@@ -1,0 +1,40 @@
+Removed Pin From Net: NetName=3.7V Pin=-1
+Removed Pin From Net: NetName=7.4V Pin=-1
+Removed Pin From Net: NetName=11.1V Pin=-1
+Removed Pin From Net: NetName=LI+ Pin=-1
+Removed Pin From Net: NetName=3.7V Pin=-2
+Removed Pin From Net: NetName=7.4V Pin=-2
+Removed Pin From Net: NetName=11.1V Pin=-2
+Removed Pin From Net: NetName=LI- Pin=-2
+Change Component Designator: OldDesignator=* NewDesignator=*?
+Change Component Designator: OldDesignator= NewDesignator=?
+Change Component Designator: OldDesignator= NewDesignator=?
+Change Component Designator: OldDesignator= NewDesignator=?
+Change Component Designator: OldDesignator= NewDesignator=?
+Change Component Designator: OldDesignator= NewDesignator=?
+Change Component Designator: OldDesignator= NewDesignator=?
+Change Component Designator: OldDesignator= NewDesignator=?
+Change Component Designator: OldDesignator= NewDesignator=?
+Change Component Designator: OldDesignator= NewDesignator=Charger 1
+Change Component Designator: OldDesignator=3 NewDesignator=?
+Added Pin To Net: NetName=7.4V Pin=?-1
+Added Pin To Net: NetName=11.1V Pin=?-1
+Added Pin To Net: NetName=LI+ Pin=?-1
+Added Pin To Net: NetName=3.7V Pin=?-2
+Added Pin To Net: NetName=7.4V Pin=?-2
+Added Pin To Net: NetName=11.1V Pin=?-2
+Added Pin To Net: NetName=3.7V Pin=Charger 1-1
+Added Pin To Net: NetName=LI- Pin=Charger 1-2
+Change Net Name : Old Net Name=Net_1 New Net Name=Net?_1
+Change Net Name : Old Net Name=Net_2 New Net Name=Net?_2
+Added Member To Class: ClassName=pakiet_schemat Member=Component *? ON OFF
+Added Member To Class: ClassName=pakiet_schemat Member=Component ? 5V2A
+Added Member To Class: ClassName=pakiet_schemat Member=Component ? 5V2A
+Added Member To Class: ClassName=pakiet_schemat Member=Component ? BMS 4S
+Added Member To Class: ClassName=pakiet_schemat Member=Component ? koszyczek SMD
+Added Member To Class: ClassName=pakiet_schemat Member=Component ? 5V2A
+Added Member To Class: ClassName=pakiet_schemat Member=Component ? switch_ekran
+Added Member To Class: ClassName=pakiet_schemat Member=Component ? xt-60
+Added Member To Class: ClassName=pakiet_schemat Member=Component ? DC IN
+Added Member To Class: ClassName=pakiet_schemat Member=Component ? ekran
+Added Member To Class: ClassName=pakiet_schemat Member=Component Charger 1 5V2A
