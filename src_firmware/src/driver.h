@@ -27,6 +27,8 @@ enum error_codes{
         UNABLE_TO_SET_GPIO = 16
 };
 
+void enc_ch1_callback(const struct device *dev, struct gpio_callback *cb, uint32_t pins);
+
 
 /// @brief Function initalising PWMs (drivers) and GPIOs.
 /// @param speed_max_mrpm - max speed defined in mili RPM
@@ -53,5 +55,10 @@ void enter_boot(void);
 /// @brief Simple getter for max speed (set by init_pwm_motor_driver)
 /// @return max speed in mili RPM
 uint32_t get_current_max_speed(void);
+
+uint64_t get_current_time_DEBUG(void);
+uint64_t get_cycles_count_DEBUG(void);
+
+char* get_driver_version(void);
 
 // TODO - getter for is_initialised to optimise higher levels?

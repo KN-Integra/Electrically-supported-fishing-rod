@@ -19,6 +19,14 @@
 		enter_boot_p: enter_boot_p {
 			gpios = <&gpio0 19 GPIO_ACTIVE_HIGH>;
 		};
+
+		get_enc_p1_ch1: get_enc_p1_ch1 {
+			gpios = <&gpio1 15 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+		};
+
+		get_enc_p2_ch1: get_enc_p2_ch1 {
+			gpios = <&gpio1 13 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+		};
 	};
 
 	aliases {
@@ -26,6 +34,8 @@
 		set-dir-p1-ch1 = &set_dir_p1_ch1;
 		set-dir-p2-ch1 = &set_dir_p2_ch1;
 		enter-boot-p = &enter_boot_p;
+		get-enc-p1-ch1 = &get_enc_p1_ch1;
+		get-enc-p2-ch1 = &get_enc_p2_ch1;
 	};
 
 };
@@ -33,13 +43,13 @@
 &pinctrl{
 	pwm1_default: pwm1_default {
 		group1 {
-			psels = <NRF_PSEL(PWM_OUT0, 0, 15)>;
+			psels = <NRF_PSEL(PWM_OUT0, 0, 29)>;
 			nordic,invert;
 		};
 	};
 	pwm1_sleep: pwm1_sleep {
 		group1 {
-			psels = <NRF_PSEL(PWM_OUT0, 0, 15)>;
+			psels = <NRF_PSEL(PWM_OUT0, 0, 29)>;
 			low-power-enable;
 		};
 	};
