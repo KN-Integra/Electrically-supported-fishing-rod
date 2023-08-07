@@ -32,7 +32,7 @@ static int cmd_speed(const struct shell *shell, size_t argc, char *argv[]){
                 return 0;
         } else if(argc == 2){
                 speed_mrpm = (uint32_t)strtol(argv[1], NULL, 10);
-                ret = speed_set(speed_mrpm);
+                ret = target_speed_set(speed_mrpm);
                 if(ret == SUCCESS){
                         shell_fprintf(shell, SHELL_ERROR, "speed set to: %d\n", speed_mrpm);
                 } else if(ret == NOT_INITIALISED){
@@ -56,12 +56,16 @@ static int cmd_boot(const struct shell *shell, size_t argc, char *argv[]){
 static int cmd_debug(const struct shell *shell, size_t argc, char *argv[]){
         shell_fprintf(shell, SHELL_ERROR, "ms from last call: %" PRIu64  "\n", get_current_time_DEBUG());
         shell_fprintf(shell, SHELL_ERROR, "Current cycles count: %" PRIu64  "\n", get_cycles_count_DEBUG());
+        shell_fprintf(shell, SHELL_ERROR, "Time cycles count: %" PRIu64  "\n", get_time_cycles_count_DEBUG());
+        shell_fprintf(shell, SHELL_ERROR, "Speed delta: %u\n", get_speed_delta_DEBUG());
+        shell_fprintf(shell, SHELL_ERROR, "Ret: %d\n", get_ret_DEBUG());
         return 0;
 }
 
 
 static int cmd_drv_version(const struct shell *shell, size_t argc, char *argv[]){
         shell_fprintf(shell, SHELL_ERROR, "Software version: %s \n", get_driver_version());
+        return 0;
 }
   
 
