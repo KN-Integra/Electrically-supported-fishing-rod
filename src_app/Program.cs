@@ -21,7 +21,20 @@ namespace Chasztag_sender_app
             int i = 0;
 
             implementations[i].list_devices();
-            implementations[i].init_connection();
+
+            Console.WriteLine("The following serial ports were found:");
+            foreach (string item in implementations[i].get_connections_as_string_list()){
+                Console.WriteLine(item);
+            }
+
+            implementations[i].list_devices();
+
+            implementations[i].choose_connection_by_index(0u);
+
+            implementations[i].open_connection();
+
+
+            implementations[i].close_connection();
 
         }
     }

@@ -7,7 +7,15 @@ namespace driver_hostapp.backend.callback_bt{
             Console.WriteLine("bt init");
         }
 
-        public void init_connection(){
+        public List<string> get_connections_as_string_list(){
+            return new List<string>();
+        }
+
+        public void choose_connection_by_index(uint index){
+
+        }
+
+        public void open_connection(){
 
         }
 
@@ -33,6 +41,10 @@ namespace driver_hostapp.backend.callback_bt{
 
         }
         public void get_position(){
+
+        }
+
+        public void close_connection(){
 
         }
     }
