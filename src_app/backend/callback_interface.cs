@@ -12,7 +12,7 @@ namespace driver_hostapp.backend.callback_interface{
         void set_mode();
         void get_mode();
 
-        void set_speed();
+        void set_speed(uint target_speed_in_mrpm);
         void get_speed();
 
         void set_position();

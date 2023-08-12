@@ -33,6 +33,9 @@ namespace Chasztag_sender_app
 
             implementations[i].open_connection();
 
+            implementations[i].send_configuration();
+            implementations[i].set_speed(0000u);
+
 
             implementations[i].close_connection();
 

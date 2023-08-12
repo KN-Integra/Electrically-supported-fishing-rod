@@ -1,90 +1,30 @@
-using System.IO.Ports; //dotnet add package System.IO.Ports --version 7.0.0
+ using System.IO.Ports;//dotnet add package System.IO.Ports --version 7.0.0
 
 using driver_hostapp.backend.callback_interface;
+using driver_hostapp.backend.utils.serial_connection_definition;
+using driver_hostapp.backend.utils.error_codes;
 
 namespace driver_hostapp.backend.callback_serial{
-    [Serializable]
-    public class NotNordicDevice : Exception{
-        public NotNordicDevice(string message)
-            : base(message){}
-    }
-
-    public class SerialDriverConnection{
-        public string Port;
-        public string HardwareID;
-        public string SoftwareVersion;
-
-        private SerialPort? SerialConnection;
-        public SerialDriverConnection(string port, string hw_id, string sw_ver){
-            this.Port = port;
-            this.HardwareID = hw_id;
-            this.SoftwareVersion = sw_ver;
-            this.SerialConnection = null;
-        }
-
-        public void open_serial_port(){
-            this.SerialConnection = new SerialPort(this.Port);
-            this.SerialConnection.BaudRate = 9600;
-            this.SerialConnection.RtsEnable = true; // thefuck?
-            this.SerialConnection.DtrEnable = true; // thefuck?
-
-            this.SerialConnection.ReadTimeout = 100;
-
-            this.SerialConnection.Open();
-        }
-
-        public void write_data(string str_of_data){
-            if(this.SerialConnection is not null){
-                this.SerialConnection.Write(str_of_data);
-            }
-        }
-
-        public List<string> read_lines(){
-            if(this.SerialConnection is not null){
-                List<string> recieved_lines = new List<string>();
-                while (true){
-                    try{
-                        string l = this.SerialConnection.ReadLine();
-                        recieved_lines.Add(l.Substring(0, l.Count()-1));
-                    } catch (System.TimeoutException){
-                        break;
-                    }
-                }
-
-                return recieved_lines;
-            } else {
-                throw new System.Exception(); // TODO - error!
-            }
-        }
-
-        public void close_serial_port(){
-            if(this.SerialConnection is not null){
-                this.SerialConnection.Close();
-            }
-        }
-
-    }
-
     public class HostappBackendSerial : IHostappBackend{
 
         private List<SerialDriverConnection> ListOfDevices;
         private uint? connection_index;
 
         public HostappBackendSerial(){
-            ListOfDevices = new List<SerialDriverConnection>();
+            this.ListOfDevices = new List<SerialDriverConnection>();
             connection_index = null;
         }
 
         public void list_devices(){
             string[] ports = SerialPort.GetPortNames();
 
-            ListOfDevices = new List<SerialDriverConnection>();
+            this.ListOfDevices = new List<SerialDriverConnection>();
 
             // Display each port name to the console.
             foreach(string port in ports){ 
                 try{
-                    ListOfDevices.Add(this.get_serial_device_info(port));
-                } catch (NotNordicDevice){
+                    this.ListOfDevices.Add(this.get_serial_device_info(port));
+                } catch (WrongDevice){
                 } catch (System.UnauthorizedAccessException){
                 }
                 
@@ -124,7 +64,7 @@ namespace driver_hostapp.backend.callback_serial{
             }
 
             if(final_id == ""){
-                throw new NotNordicDevice($"{port_name} doesn't implement hwinfo devid command!");
+                throw new WrongDevice($"{port_name} doesn't implement hwinfo devid command!");
             }
 
             serial_connection.HardwareID = final_id;
@@ -144,7 +84,7 @@ namespace driver_hostapp.backend.callback_serial{
             }
 
             if(final_sw_ver == ""){
-                throw new NotNordicDevice($"{port_name} doesn't implement drv_version command!");
+                throw new WrongDevice($"{port_name} doesn't implement drv_version command!");
             }
 
             serial_connection.SoftwareVersion = final_sw_ver;
@@ -156,18 +96,26 @@ namespace driver_hostapp.backend.callback_serial{
         }
 
         public void choose_connection_by_index(uint index){
-            this.connection_index = index;
+            if(index >= this.ListOfDevices.Count()){
+                throw new NonExistingDevice($"id. {index} is not in the list of possible Serial connections!");
+            }
+            this.connection_index = index;            
         }
 
         public void open_connection(){
-            if(connection_index is null){
-                throw new System.Exception(); // TODO - change exception!!!
+            if(this.connection_index is null){
+                throw new DeviceNotChosen("Cannot open connection if no connection was chosen!");
             }
             this.ListOfDevices[(int)this.connection_index].open_serial_port();
         }
 
         public void send_configuration(){
+            if(this.connection_index is null){
+                throw new DeviceNotChosen("Cannot send configuraton if no connection was chosen!");
+            }
 
+            this.ListOfDevices[(int)this.connection_index].write_data("init\n");
+            this.ListOfDevices[(int)this.connection_index].read_lines();
         }
 
         public void set_mode(){
@@ -177,8 +125,12 @@ namespace driver_hostapp.backend.callback_serial{
 
         }
 
-        public void set_speed(){
-
+        public void set_speed(uint target_speed_in_mrpm){
+            if(connection_index is null){
+                throw new DeviceNotChosen("Cannot send speed if no connection was chosen!");
+            }
+            this.ListOfDevices[(int)this.connection_index].write_data($"speed {target_speed_in_mrpm}\n");
+            this.ListOfDevices[(int)this.connection_index].read_lines();
         }
         public void get_speed(){
 

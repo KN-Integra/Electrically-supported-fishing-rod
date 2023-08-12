@@ -30,7 +30,7 @@ namespace driver_hostapp.backend.callback_bt{
 
         }
 
-        public void set_speed(){
+        public void set_speed(uint target_speed_in_mrpm){
 
         }
         public void get_speed(){
