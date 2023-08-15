@@ -1,4 +1,4 @@
-#include<zephyr/kernel.h>
+#include <zephyr/kernel.h>
 #include <zephyr/shell/shell.h>
 #include <stdlib.h>
 #include "driver.h"
@@ -9,7 +9,7 @@ static int cmd_init(const struct shell *shell, size_t argc, char *argv[]){
         if(ret){
                 shell_fprintf(shell, SHELL_ERROR, "usuccesful driver initialisation, errc: %d\n",ret);
         }else{
-                shell_fprintf(shell, SHELL_ERROR, "initialisation succesful!\n");
+                shell_fprintf(shell, SHELL_NORMAL, "initialisation succesful!\n");
         }
 
         return 0;
@@ -22,7 +22,7 @@ static int cmd_speed(const struct shell *shell, size_t argc, char *argv[]){
         {
                 ret = speed_get(&speed_mrpm);
                 if(ret == SUCCESS){
-                        shell_fprintf(shell, SHELL_ERROR, "speed: %d\n", speed_mrpm);
+                        shell_fprintf(shell, SHELL_NORMAL, "speed: %d\n", speed_mrpm);
                 } else if(ret == NOT_INITIALISED){
                         shell_fprintf(shell, SHELL_ERROR, "driver not initialised, could't get speed!\n");
                 } else{
@@ -32,9 +32,9 @@ static int cmd_speed(const struct shell *shell, size_t argc, char *argv[]){
                 return 0;
         } else if(argc == 2){
                 speed_mrpm = (uint32_t)strtol(argv[1], NULL, 10);
-                ret = speed_set(speed_mrpm);
+                ret = target_speed_set(speed_mrpm);
                 if(ret == SUCCESS){
-                        shell_fprintf(shell, SHELL_ERROR, "speed set to: %d\n", speed_mrpm);
+                        shell_fprintf(shell, SHELL_NORMAL, "speed set to: %d\n", speed_mrpm);
                 } else if(ret == NOT_INITIALISED){
                         shell_fprintf(shell, SHELL_ERROR, "driver not initialised, could't set speed!\n");
                 } else if(ret == DESIRED_SPEED_TO_HIGH){
@@ -46,10 +46,24 @@ static int cmd_speed(const struct shell *shell, size_t argc, char *argv[]){
         return 0;
 }
 
-
-
 static int cmd_boot(const struct shell *shell, size_t argc, char *argv[]){
         enter_boot();
+        return 0;
+}
+
+static int cmd_debug(const struct shell *shell, size_t argc, char *argv[]){
+        shell_fprintf(shell, SHELL_INFO, "Current cycles count: %" PRIu64  "\n"
+                                         "Time cycles count: %" PRIu64  "\n"
+                                         "Ret: %d\n",
+        get_cycles_count_DEBUG(),
+        get_time_cycles_count_DEBUG(),
+        get_ret_DEBUG()
+        );
+        return 0;
+}
+
+static int cmd_drv_version(const struct shell *shell, size_t argc, char *argv[]){
+        shell_fprintf(shell, SHELL_ERROR, "Software version: %s \n", get_driver_version());
         return 0;
 }
 
@@ -57,3 +71,5 @@ static int cmd_boot(const struct shell *shell, size_t argc, char *argv[]){
 SHELL_CMD_REGISTER(init, NULL, "Initialise PWM motors and GPIOs\ninit to use default values\ninit with args - TODO", cmd_init);
 SHELL_CMD_ARG_REGISTER(speed, NULL, "speed in milli RPM (one thousands of RPM)\nspeed to get speed\nspeed <value> to set speed", cmd_speed, 1, 1);
 SHELL_CMD_REGISTER(boot, NULL, "Enter bootloader mode, in order to flash new software via nRF connect programmer", cmd_boot);
+SHELL_CMD_REGISTER(debug, NULL, "get debug info", cmd_debug);
+SHELL_CMD_REGISTER(drv_version, NULL, "get motor driver version", cmd_drv_version);
