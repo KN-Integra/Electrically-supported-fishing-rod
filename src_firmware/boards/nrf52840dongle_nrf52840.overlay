@@ -1,34 +1,41 @@
 / {
 	pwmdrv {
 		compatible = "pwm-leds";
-		pwm_driver: pwm_drv {
+		pwm_drv_ch1: pwm_drv_ch1 {
 			pwms = <&pwm1 0 PWM_MSEC(20) 0>;
 		};
 	};
 
-	in {
+	gpio_pins {
 		compatible = "gpio-leds";
-		in_pin_1: in_1 {
+		set_dir_p1_ch1: set_dir_p1_ch1 {
 			gpios = <&gpio0 22 GPIO_ACTIVE_LOW>;
-			label = "in 1";
 		};
 
-		in_pin_2: in_2 {
+		set_dir_p2_ch1: set_dir_p2_ch1 {
 			gpios = <&gpio0 24 GPIO_ACTIVE_LOW>;
-			label = "in 2";
 		};
 
-		out_pin_boot: out_boot {
+		enter_boot_p: enter_boot_p {
 			gpios = <&gpio0 19 GPIO_ACTIVE_HIGH>;
-			label = "out boot";
+		};
+
+		get_enc_p1_ch1: get_enc_p1_ch1 {
+			gpios = <&gpio1 15 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+		};
+
+		get_enc_p2_ch1: get_enc_p2_ch1 {
+			gpios = <&gpio1 13 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
 		};
 	};
 
 	aliases {
-		pwm-drv = &pwm_driver;
-		in1 = &in_pin_1;
-		in2 = &in_pin_2;
-		outboot = &out_pin_boot;
+		pwm-drv-ch1 = &pwm_drv_ch1;
+		set-dir-p1-ch1 = &set_dir_p1_ch1;
+		set-dir-p2-ch1 = &set_dir_p2_ch1;
+		enter-boot-p = &enter_boot_p;
+		get-enc-p1-ch1 = &get_enc_p1_ch1;
+		get-enc-p2-ch1 = &get_enc_p2_ch1;
 	};
 
 };
@@ -36,13 +43,13 @@
 &pinctrl{
 	pwm1_default: pwm1_default {
 		group1 {
-			psels = <NRF_PSEL(PWM_OUT0, 0, 15)>;
+			psels = <NRF_PSEL(PWM_OUT0, 0, 29)>;
 			nordic,invert;
 		};
 	};
 	pwm1_sleep: pwm1_sleep {
 		group1 {
-			psels = <NRF_PSEL(PWM_OUT0, 0, 15)>;
+			psels = <NRF_PSEL(PWM_OUT0, 0, 29)>;
 			low-power-enable;
 		};
 	};

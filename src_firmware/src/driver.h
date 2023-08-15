@@ -1,4 +1,5 @@
 #include<zephyr/kernel.h>
+#include <zephyr/drivers/gpio.h>
 
 /// @brief Error code definitions for motor driver
 enum error_codes{
@@ -27,25 +28,25 @@ enum error_codes{
         UNABLE_TO_SET_GPIO = 16
 };
 
-
 /// @brief Function initalising PWMs (drivers) and GPIOs.
 /// @param speed_max_mrpm - max speed defined in mili RPM
 /// @return error defined in error_codes
 int init_pwm_motor_driver(uint32_t speed_max_mrpm);
 
-/// @brief Set new desired speed
+/// @brief Set new desired (targeted) speed AND set the pwm
 /// @param value - value in mili RPM
 /// @return error defined in error_codes
-int speed_set(uint32_t value);
+int target_speed_set(uint32_t value);
+
+/// @brief Only update the pwm to correspond to the value speed
+/// @param value - value in mili RPM
+/// @return error defined in error_codes
+int speed_pwm_set(uint32_t value);
 
 /// @brief Get current actual speed (from encoders)  - TODO - implement with encoders
 /// @param value - variable to save speed
 /// @return error defined in error_codes
 int speed_get(uint32_t* value);
-
-/// @brief Update speed continuusly - TODO - implement with encoders
-/// @return error defined in error_codes
-int continuus_speed_update(void);
 
 /// @brief Enter bootloader mode (in order to flash new software via nRF connect programmer) 
 void enter_boot(void);
@@ -54,4 +55,8 @@ void enter_boot(void);
 /// @return max speed in mili RPM
 uint32_t get_current_max_speed(void);
 
-// TODO - getter for is_initialised to optimise higher levels?
+uint64_t get_cycles_count_DEBUG(void);
+uint64_t get_time_cycles_count_DEBUG(void);
+int32_t get_ret_DEBUG(void);
+
+char* get_driver_version(void);
