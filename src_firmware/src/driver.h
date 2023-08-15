@@ -41,7 +41,7 @@ int target_speed_set(uint32_t value);
 /// @brief Only update the pwm to correspond to the value speed
 /// @param value - value in mili RPM
 /// @return error defined in error_codes
-int speed_set_pwm(uint32_t value);
+int speed_pwm_set(uint32_t value);
 
 /// @brief Get current actual speed (from encoders)  - TODO - implement with encoders
 /// @param value - variable to save speed
@@ -55,10 +55,8 @@ void enter_boot(void);
 /// @return max speed in mili RPM
 uint32_t get_current_max_speed(void);
 
-uint64_t get_current_time_DEBUG(void);
 uint64_t get_cycles_count_DEBUG(void);
 uint64_t get_time_cycles_count_DEBUG(void);
-uint32_t get_speed_delta_DEBUG(void);
 int32_t get_ret_DEBUG(void);
 
 char* get_driver_version(void);
