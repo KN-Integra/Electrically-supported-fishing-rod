@@ -1,12 +1,14 @@
 ﻿using System;
 using System.IO.Ports;
 using System.ComponentModel;
+using System.Threading;
 
 using driver_hostapp.backend.callback_interface;
+using driver_hostapp.backend.utils.error_codes;
 using driver_hostapp.backend.callback_serial;
 using driver_hostapp.backend.callback_bt;
 
-namespace Chasztag_sender_app
+namespace DriverBackend
 {
     class Program
     {
@@ -34,7 +36,22 @@ namespace Chasztag_sender_app
             implementations[i].open_connection();
 
             implementations[i].send_configuration();
-            implementations[i].set_speed(0000u);
+
+            uint desired_speed = 30000u;
+
+            Console.WriteLine($"Setting Speed - {desired_speed}");
+
+            try{
+                implementations[i].set_speed(desired_speed);
+            } catch(ErrorFromDriver e){
+                Console.WriteLine(e.Message);
+            }
+
+            for (int j = 0; j < 4; ++j){
+                Console.WriteLine(implementations[i].get_speed());
+                Thread.Sleep(2000);
+            }
+            
 
 
             implementations[i].close_connection();

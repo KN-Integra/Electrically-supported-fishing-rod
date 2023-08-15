@@ -30,4 +30,11 @@ namespace driver_hostapp.backend.utils.error_codes{
         public DeviceNotConnected(string message)
             : base(message){}
     }
+
+
+    [Serializable]
+    public class ErrorFromDriver : DriverException{
+        public ErrorFromDriver(string message)
+            : base(message){}
+    }
 }

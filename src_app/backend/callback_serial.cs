@@ -115,7 +115,7 @@ namespace driver_hostapp.backend.callback_serial{
             }
 
             this.ListOfDevices[(int)this.connection_index].write_data("init\n");
-            this.ListOfDevices[(int)this.connection_index].read_lines();
+            this.get_return_from_device_with_error_check("initialisation succesful!");
         }
 
         public void set_mode(){
@@ -130,9 +130,30 @@ namespace driver_hostapp.backend.callback_serial{
                 throw new DeviceNotChosen("Cannot send speed if no connection was chosen!");
             }
             this.ListOfDevices[(int)this.connection_index].write_data($"speed {target_speed_in_mrpm}\n");
-            this.ListOfDevices[(int)this.connection_index].read_lines();
+            this.get_return_from_device_with_error_check($"speed set to: {target_speed_in_mrpm}");
+            
         }
-        public void get_speed(){
+        public uint get_speed(){
+            if(connection_index is null){
+                throw new DeviceNotChosen("Cannot get speed if no connection was chosen!");
+            }
+
+            this.ListOfDevices[(int)this.connection_index].write_data($"speed\n");
+
+
+            List<string> lines = this.ListOfDevices[(int)this.connection_index].read_lines();
+
+            string error_code = "";
+
+            foreach (string l in lines){
+                if(l.Contains("speed: ")){
+                    return Convert.ToUInt32(l.Substring(7));
+                } else{
+                    error_code = l;
+                }
+            }
+
+            throw new ErrorFromDriver(error_code);
 
         }
 
@@ -145,9 +166,29 @@ namespace driver_hostapp.backend.callback_serial{
 
         public void close_connection(){
             if(connection_index is null){
-                throw new System.Exception(); // TODO - change exception!!!
+                throw new DeviceNotChosen("Cannot close connection if no connection was chosen!");
             }
             this.ListOfDevices[(int)this.connection_index].close_serial_port();
+        }
+
+        private void get_return_from_device_with_error_check(string expected_string){
+            if(connection_index is null){
+                throw new DeviceNotChosen("Cannot send speed if no connection was chosen!");
+            }
+
+            var return_lines = this.ListOfDevices[(int)this.connection_index].read_lines();
+
+            string error_code = "";
+
+            foreach (var l in return_lines){
+                if(l == expected_string){
+                    return;
+                } else{
+                    error_code = l;
+                }
+            }
+
+            throw new ErrorFromDriver(error_code);
         }
     }
 }
