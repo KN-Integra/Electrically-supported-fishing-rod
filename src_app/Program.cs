@@ -1,9 +1,4 @@
-﻿using System;
-using System.IO.Ports;
-using System.ComponentModel;
-using System.Threading;
-
-using driver_hostapp.backend.callback_interface;
+﻿using driver_hostapp.backend.callback_interface;
 using driver_hostapp.backend.utils.error_codes;
 using driver_hostapp.backend.callback_serial;
 using driver_hostapp.backend.callback_bt;
