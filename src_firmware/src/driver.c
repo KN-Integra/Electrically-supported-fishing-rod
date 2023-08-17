@@ -9,7 +9,8 @@ static ControlModes control_mode = SPEED;
 static uint32_t current_position = 0u;
 static uint32_t target_position = 0u;
 
-static const uint32_t max_position = 360u; // constant value that accuracy depends on
+static const uint32_t max_position = 3600u; // constant value that accuracy depends on
+static uint32_t encoder_cpr = 9600u; // TODO - add some form of setter or as a part of init
 
 volatile static uint32_t target_speed_mrpm = 0u;// Target set by user
 volatile static uint32_t actual_mrpm = 0u; // actual speed calculated from encoder pins
@@ -78,7 +79,7 @@ void update_speed_and_position_continuus(struct k_work *work)
 
         actual_mrpm = (diff*25)/4; //(diff*60)/(64*150) * 1000;
 
-        int32_t position_difference = (diff*max_position)/9600;
+        int32_t position_difference = (diff*max_position)/encoder_cpr;
         int32_t new_position = (int32_t)current_position + position_difference;
         if(new_position <=0){
                 current_position = (uint32_t)(max_position + new_position);
@@ -87,8 +88,8 @@ void update_speed_and_position_continuus(struct k_work *work)
         }
 
 
-
-        // if(last_calculated_speed > max_mrpm){ //cutoff at max_mrpm TODO - why it breaks the controller?
+        //cutoff at max_mrpm TODO - figure out why it breaks the controller?
+        // if(last_calculated_speed > max_mrpm){ 
         //         last_calculated_speed = max_mrpm;
         // }
 
@@ -99,24 +100,28 @@ void update_speed_and_position_continuus(struct k_work *work)
                 uint8_t Kp_denominator = 10;
 
                 last_calculated_speed = (uint32_t)((int32_t)last_calculated_speed + (int32_t)(Kp_numerator*speed_delta/Kp_denominator)); // increase or decrese speed each iteration by Kp * speed_delta
-                ret_debug = speed_pwm_set(last_calculated_speed);
+                speed_pwm_set(last_calculated_speed);
         } else if(control_mode == POSITION){
                 int32_t position_delta = target_position - current_position;
                 if(position_delta <0){
                         position_delta = -position_delta;
                 }
-                if(position_delta >max_position/(36*2)){
+                if(position_delta >max_position/(36)){
                 
-                        uint8_t Kp_numerator = 1;
-                        uint8_t Kp_denominator = 2;
+                        // uint8_t Kp_numerator = 10;
+                        // uint8_t Kp_denominator = 1;
 
-                        uint32_t scaled_to_speed = ((uint32_t)position_delta) * Kp_numerator * max_mrpm/max_position/Kp_denominator;
-                
-                        ret_debug = speed_pwm_set(scaled_to_speed);
+                        // uint32_t scaled_to_speed = ((uint32_t)position_delta) * Kp_numerator * max_mrpm/(max_position*Kp_denominator);
+                        // if(scaled_to_speed>max_mrpm){
+                        //         scaled_to_speed = max_mrpm;
+                        // }
+                        // Code currently unused, 
+                        // TODO - figure out actual scaling
+
+                        ret_debug = speed_pwm_set(max_mrpm/3); // TODO - max_mrpm/3 is temporary!
                 } else{
                         ret_debug = speed_pwm_set(0);
                 }
-                // ret_debug = speed_pwm_set(scaled_to_speed);
                 
 
         }
