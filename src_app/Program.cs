@@ -8,8 +8,6 @@ namespace DriverBackend
     class Program
     {
         static void Main(string[] args){
-
-
             List<IHostappBackend> implementations = new List<IHostappBackend>();
 
             implementations.Add(new HostappBackendSerial());
@@ -46,8 +44,6 @@ namespace DriverBackend
                 Console.WriteLine(implementations[i].get_speed());
                 Thread.Sleep(2000);
             }
-            
-
 
             implementations[i].close_connection();
 

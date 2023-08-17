@@ -19,8 +19,9 @@ namespace driver_hostapp.backend.utils.serial_connection_definition{
         public void open_serial_port(){
             this.SerialConnection = new SerialPort(this.Port);
             this.SerialConnection.BaudRate = 9600;
-            this.SerialConnection.RtsEnable = true; // thefuck?
-            this.SerialConnection.DtrEnable = true; // thefuck?
+            this.SerialConnection.RtsEnable = true;
+            this.SerialConnection.DtrEnable = true;
+            // TODO - what does this two options do?
 
             this.SerialConnection.ReadTimeout = 100;
 
