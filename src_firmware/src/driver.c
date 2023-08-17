@@ -3,7 +3,7 @@
 
 #include "driver.h"
 
-static char* driver_ver = "0.1";
+static char* driver_ver = "0.2";
 
 static ControlModes control_mode = SPEED;
 static uint32_t current_position = 0u;
