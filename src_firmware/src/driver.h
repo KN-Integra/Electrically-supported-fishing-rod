@@ -23,30 +23,47 @@ enum error_codes{
         UNABLE_TO_SET_PWM_CHNL1 = 13,
         UNABLE_TO_SET_PWM_CHNL2 = 14,
 
-        DESIRED_SPEED_TO_HIGH = 15,
+        DESIRED_VALUE_TO_HIGH = 15,
 
-        UNABLE_TO_SET_GPIO = 16
+        UNABLE_TO_SET_GPIO = 16,
+
+        WRONG_MODE = 17
 };
+
+
+typedef enum ControlModes{
+        SPEED = 0,
+        POSITION = 1
+} ControlModes;
+
+
 
 /// @brief Function initalising PWMs (drivers) and GPIOs.
 /// @param speed_max_mrpm - max speed defined in mili RPM
+/// @param default_control_mode - control mode (pass SPEED for default behaviour)
+/// @param start_position - position at which motor starts (pass 0 for default behaviour; used only in position control)
 /// @return error defined in error_codes
-int init_pwm_motor_driver(uint32_t speed_max_mrpm);
+int init_pwm_motor_driver(uint32_t speed_max_mrpm, ControlModes default_control_mode, uint32_t start_position);
 
 /// @brief Set new desired (targeted) speed AND set the pwm
 /// @param value - value in mili RPM
 /// @return error defined in error_codes
 int target_speed_set(uint32_t value);
 
-/// @brief Only update the pwm to correspond to the value speed
-/// @param value - value in mili RPM
-/// @return error defined in error_codes
-int speed_pwm_set(uint32_t value);
-
 /// @brief Get current actual speed (from encoders)  - TODO - implement with encoders
 /// @param value - variable to save speed
 /// @return error defined in error_codes
 int speed_get(uint32_t* value);
+
+
+int target_position_set(uint32_t new_target_position);
+
+int position_get(uint32_t* value);
+
+int mode_set(ControlModes new_mode);
+
+int mode_get(ControlModes* value);
+
 
 /// @brief Enter bootloader mode (in order to flash new software via nRF connect programmer) 
 void enter_boot(void);
@@ -60,3 +77,5 @@ uint64_t get_time_cycles_count_DEBUG(void);
 int32_t get_ret_DEBUG(void);
 
 char* get_driver_version(void);
+
+int get_control_mode_from_string(char* str_control_mode, ControlModes* ret_value);

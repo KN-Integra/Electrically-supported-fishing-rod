@@ -1,21 +1,28 @@
 #include <zephyr/drivers/pwm.h>
+#include <string.h>
 
 #include "driver.h"
 
 static char* driver_ver = "0.1";
 
-volatile static uint32_t target_speed_mrpm = 0;// Target set by user
-volatile static uint32_t actual_mrpm = 0; // actual speed calculated from encoder pins
+static ControlModes control_mode = SPEED;
+static uint32_t current_position = 0u;
+static uint32_t target_position = 0u;
 
-volatile static uint32_t max_mrpm = 0;// max rpm set by user in init (read from documentation)
+static const uint32_t max_position = 360u; // constant value that accuracy depends on
 
-static uint32_t last_calculated_speed = 0; // temporary speed used for PID calculations
+volatile static uint32_t target_speed_mrpm = 0u;// Target set by user
+volatile static uint32_t actual_mrpm = 0u; // actual speed calculated from encoder pins
+
+volatile static uint32_t max_mrpm = 0u;// max rpm set by user in init (read from documentation)
+
+static uint32_t last_calculated_speed = 0u; // temporary speed used for PID calculations
 
 
 /// variables used for actual speed calculation based on encoder pin and timer interrupts
-static uint64_t count_cycles = 0;
-static uint64_t old_count_cycles = 0;
-static uint64_t count_timer = 0;
+static uint64_t count_cycles = 0u;
+static uint64_t old_count_cycles = 0u;
+static uint64_t count_timer = 0u;
 struct k_timer my_timer;
 ///
 
@@ -32,37 +39,93 @@ static const struct gpio_dt_spec enc_p2_ch1 = GPIO_DT_SPEC_GET(DT_ALIAS(get_enc_
 
 static const struct gpio_dt_spec enc_ch1_pins[2] = {enc_p1_ch1, enc_p2_ch1};
 
-static struct gpio_callback enc1_cb;
-static struct gpio_callback enc2_cb;
-
 static struct gpio_callback enc_ch1_cb[2];
 
 
 static int32_t ret_debug = 100;// DEBUG ONLY
 
+int speed_pwm_set(uint32_t value){
+        int ret;
+        last_calculated_speed = value;
+        if(drv_initialised){
 
-void update_speed_continuus(struct k_work *work)
-{
-    count_timer+=1;
-    uint64_t diff = count_cycles - old_count_cycles;
-    old_count_cycles = count_cycles;
+                if(value > max_mrpm){
+                        return DESIRED_VALUE_TO_HIGH;
+                }
 
+                uint64_t w_1 = pwm_motor_driver.period * (uint64_t)value;
+                uint32_t w = (uint32_t)(w_1/max_mrpm);
+                
+                ret = pwm_set_pulse_dt(&pwm_motor_driver, w);
+                if(0 == ret){
+                        return SUCCESS;
+                }
+                else{
+                        return UNABLE_TO_SET_PWM_CHNL1;
+                }
+        }
 
-    actual_mrpm = (diff*25)/4; //(diff*60)/(64*150) * 1000;
-    int32_t speed_delta = target_speed_mrpm - actual_mrpm;
-
-    uint8_t Kp_numerator = 4;
-    uint8_t Kp_denominator = 10;
-
-    last_calculated_speed = (uint32_t)((int32_t)last_calculated_speed + (int32_t)(Kp_numerator*speed_delta/Kp_denominator)); // increase or decrese speed each iteration by Kp * speed_delta
-
-    ret_debug = speed_pwm_set(last_calculated_speed);
+        return NOT_INITIALISED;
 }
 
-K_WORK_DEFINE(speed_update_work, update_speed_continuus);
+
+void update_speed_and_position_continuus(struct k_work *work)
+{
+        count_timer+=1;
+        uint64_t diff = count_cycles - old_count_cycles;
+        old_count_cycles = count_cycles;
+
+
+        actual_mrpm = (diff*25)/4; //(diff*60)/(64*150) * 1000;
+
+        int32_t position_difference = (diff*max_position)/9600;
+        int32_t new_position = (int32_t)current_position + position_difference;
+        if(new_position <=0){
+                current_position = (uint32_t)(max_position + new_position);
+        } else{
+                current_position = ((uint32_t)new_position)%max_position;
+        }
+
+
+
+        // if(last_calculated_speed > max_mrpm){ //cutoff at max_mrpm TODO - why it breaks the controller?
+        //         last_calculated_speed = max_mrpm;
+        // }
+
+        if(control_mode == SPEED){
+                int32_t speed_delta = target_speed_mrpm - actual_mrpm;
+
+                uint8_t Kp_numerator = 4;
+                uint8_t Kp_denominator = 10;
+
+                last_calculated_speed = (uint32_t)((int32_t)last_calculated_speed + (int32_t)(Kp_numerator*speed_delta/Kp_denominator)); // increase or decrese speed each iteration by Kp * speed_delta
+                ret_debug = speed_pwm_set(last_calculated_speed);
+        } else if(control_mode == POSITION){
+                int32_t position_delta = target_position - current_position;
+                if(position_delta <0){
+                        position_delta = -position_delta;
+                }
+                if(position_delta >max_position/(36*2)){
+                
+                        uint8_t Kp_numerator = 1;
+                        uint8_t Kp_denominator = 2;
+
+                        uint32_t scaled_to_speed = ((uint32_t)position_delta) * Kp_numerator * max_mrpm/max_position/Kp_denominator;
+                
+                        ret_debug = speed_pwm_set(scaled_to_speed);
+                } else{
+                        ret_debug = speed_pwm_set(0);
+                }
+                // ret_debug = speed_pwm_set(scaled_to_speed);
+                
+
+        }
+}
+
+K_WORK_DEFINE(speed_update_work, update_speed_and_position_continuus);
 
 void my_timer_handler(struct k_timer *dummy){
-    k_work_submit(&speed_update_work);
+        k_work_submit(&speed_update_work);
 }
 
 K_TIMER_DEFINE(my_timer, my_timer_handler, NULL);
@@ -72,8 +135,10 @@ void enc_ch1_callback(const struct device *dev, struct gpio_callback *cb, uint32
 }
 
 
-int init_pwm_motor_driver(uint32_t speed_max_mrpm){
+int init_pwm_motor_driver(uint32_t speed_max_mrpm, ControlModes default_control_mode, uint32_t start_position){
         max_mrpm = speed_max_mrpm;
+        control_mode = default_control_mode;
+        current_position = start_position;
         int ret;
 
         if (!device_is_ready(pwm_motor_driver.dev)) {
@@ -109,7 +174,10 @@ int init_pwm_motor_driver(uint32_t speed_max_mrpm){
                 // TODO - ret error checking!!
         }
 
-        k_timer_start(&my_timer, K_SECONDS(1), K_SECONDS(1));
+        k_timer_start(&my_timer, K_MSEC(100), K_MSEC(100));
+
+        count_cycles = 0;
+        old_count_cycles = 0;
 
         drv_initialised = true;
 
@@ -117,37 +185,65 @@ int init_pwm_motor_driver(uint32_t speed_max_mrpm){
 }
 
 int target_speed_set(uint32_t value){
-        target_speed_mrpm = value;
-        return speed_pwm_set(value);
+        if(drv_initialised){
+                if(control_mode == SPEED){
+                        target_speed_mrpm = value;
+                        return speed_pwm_set(value);
+                }
+                return WRONG_MODE;
+        }
+
+        return NOT_INITIALISED;
+        
 }
 
-int speed_pwm_set(uint32_t value){
-        int ret;
-        last_calculated_speed = value;
+int speed_get(uint32_t* value){
         if(drv_initialised){
-
-                if(value > max_mrpm){
-                        return DESIRED_SPEED_TO_HIGH;
-                }
-
-                uint64_t w_1 = pwm_motor_driver.period * (uint64_t)value;
-                uint32_t w = (uint32_t)(w_1/max_mrpm);
-                
-                ret = pwm_set_pulse_dt(&pwm_motor_driver, w);
-                if(0 == ret){
-                        return SUCCESS;
-                }
-                else{
-                        return UNABLE_TO_SET_PWM_CHNL1;
-                }
+                *value = actual_mrpm;
+                return SUCCESS;
         }
 
         return NOT_INITIALISED;
 }
 
-int speed_get(uint32_t* value){
+int target_position_set(uint32_t new_target_position){
         if(drv_initialised){
-                *value = actual_mrpm; // TODO - get speed from encoder
+                if(control_mode == POSITION){
+                        if(new_target_position > max_position){
+                                return DESIRED_VALUE_TO_HIGH;
+                        }
+                        target_position = new_target_position;
+                        return SUCCESS;
+                }
+                return WRONG_MODE;
+        }
+
+        return NOT_INITIALISED;
+}
+
+int position_get(uint32_t* value){
+        if(drv_initialised){
+                *value = current_position;
+                return SUCCESS;
+        }
+
+        return NOT_INITIALISED;
+}
+
+
+int mode_set(ControlModes new_mode){
+        if(drv_initialised){
+                control_mode = new_mode;
+                return SUCCESS;
+        }
+
+        return NOT_INITIALISED;
+        
+}
+
+int mode_get(ControlModes* value){
+        if(drv_initialised){
+                *value = control_mode;
                 return SUCCESS;
         }
 
@@ -177,4 +273,17 @@ int32_t get_ret_DEBUG(void){
 
 char* get_driver_version(void){
         return driver_ver;
+}
+
+
+int get_control_mode_from_string(char* str_control_mode, ControlModes* ret_value){
+        if(strcmp(str_control_mode, "speed") == 0){
+                *ret_value = SPEED;
+                return SUCCESS;
+        } else if(strcmp(str_control_mode, "position") == 0){
+                *ret_value = POSITION;
+                return SUCCESS;
+        } else{
+                return WRONG_MODE;
+        }
 }
