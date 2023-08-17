@@ -1,40 +1,52 @@
-﻿using System;
-using System.IO.Ports;
-using System.ComponentModel;
+﻿using driver_hostapp.backend.callback_interface;
+using driver_hostapp.backend.utils.error_codes;
+using driver_hostapp.backend.callback_serial;
+using driver_hostapp.backend.callback_bt;
 
-namespace Chasztag_sender_app
+namespace DriverBackend
 {
     class Program
     {
-        static void Main(string[] args)
-        {
+        static void Main(string[] args){
+            List<IHostappBackend> implementations = new List<IHostappBackend>();
 
-            UInt32 set = 10000;
-            byte[] s = new byte[6];
-            
-            s[0] = 0x21;
+            implementations.Add(new HostappBackendSerial());
+            implementations.Add(new HostappBackendBluetooth());
 
-            for(int i =4; i> 0; --i){
-                s[i] = Convert.ToByte(set & 0xff);
-                set = set >> 8;
+            int i = 0;
+
+            implementations[i].list_devices();
+
+            Console.WriteLine("The following serial ports were found:");
+            foreach (string item in implementations[i].get_connections_as_string_list()){
+                Console.WriteLine(item);
             }
 
-            s[5] = Convert.ToByte('\n');
-            
+            implementations[i].list_devices();
 
-            SerialPort mySerialPort = new SerialPort("COM9");
-            mySerialPort.BaudRate = 9600;
+            implementations[i].choose_connection_by_index(0u);
 
-            mySerialPort.Open();
+            implementations[i].open_connection();
 
-            mySerialPort.Write(s, 0, s.Length);
+            implementations[i].send_configuration();
 
-            mySerialPort.Close();
+            uint desired_speed = 30000u;
 
-            foreach(var item in s)
-            {
-                Console.WriteLine(item.ToString());
+            Console.WriteLine($"Setting Speed - {desired_speed}");
+
+            try{
+                implementations[i].set_speed(desired_speed);
+            } catch(ErrorFromDriver e){
+                Console.WriteLine(e.Message);
             }
+
+            for (int j = 0; j < 4; ++j){
+                Console.WriteLine(implementations[i].get_speed());
+                Thread.Sleep(2000);
+            }
+
+            implementations[i].close_connection();
+
         }
     }
 }
