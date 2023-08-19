@@ -46,10 +46,12 @@ static int cmd_speed(const struct shell *shell, size_t argc, char *argv[]){
         return 0;
 }
 
+#if defined(CONFIG_BOARD_NRF52840DONGLE_NRF52840)
 static int cmd_boot(const struct shell *shell, size_t argc, char *argv[]){
         enter_boot();
         return 0;
 }
+#endif
 
 static int cmd_debug(const struct shell *shell, size_t argc, char *argv[]){
         shell_fprintf(shell, SHELL_INFO, "Current cycles count: %" PRIu64  "\n"
@@ -70,6 +72,8 @@ static int cmd_drv_version(const struct shell *shell, size_t argc, char *argv[])
 
 SHELL_CMD_REGISTER(init, NULL, "Initialise PWM motors and GPIOs\ninit to use default values\ninit with args - TODO", cmd_init);
 SHELL_CMD_ARG_REGISTER(speed, NULL, "speed in milli RPM (one thousands of RPM)\nspeed to get speed\nspeed <value> to set speed", cmd_speed, 1, 1);
-SHELL_CMD_REGISTER(boot, NULL, "Enter bootloader mode, in order to flash new software via nRF connect programmer", cmd_boot);
 SHELL_CMD_REGISTER(debug, NULL, "get debug info", cmd_debug);
 SHELL_CMD_REGISTER(drv_version, NULL, "get motor driver version", cmd_drv_version);
+#if defined(CONFIG_BOARD_NRF52840DONGLE_NRF52840)
+SHELL_CMD_REGISTER(boot, NULL, "Enter bootloader mode, in order to flash new software via nRF connect programmer", cmd_boot);
+#endif
