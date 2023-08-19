@@ -25,7 +25,9 @@ volatile static bool drv_initialised = false; // was init command sent?
 static const struct pwm_dt_spec pwm_motor_driver = PWM_DT_SPEC_GET(DT_ALIAS(pwm_drv_ch1));
 
 static const struct gpio_dt_spec set_dir_p1 = GPIO_DT_SPEC_GET(DT_ALIAS(set_dir_p1_ch1), gpios);
+#if defined(CONFIG_BOARD_NRF52840DONGLE_NRF52840)
 static const struct gpio_dt_spec out_boot = GPIO_DT_SPEC_GET(DT_ALIAS(enter_boot_p), gpios);
+#endif
 
 static const struct gpio_dt_spec enc_p1_ch1 = GPIO_DT_SPEC_GET(DT_ALIAS(get_enc_p1_ch1), gpios);
 static const struct gpio_dt_spec enc_p2_ch1 = GPIO_DT_SPEC_GET(DT_ALIAS(get_enc_p2_ch1), gpios);
@@ -97,9 +99,11 @@ int init_pwm_motor_driver(uint32_t speed_max_mrpm){
                 return UNABLE_TO_SET_GPIO;
         }
 
+#if defined(CONFIG_BOARD_NRF52840DONGLE_NRF52840)
         if (!gpio_is_ready_dt(&out_boot)) {
                 return GPIO_OUT_BOOT_NOT_READY;
 	}
+#endif
 
         for(int i = 0; i<2; ++i){
                 ret = gpio_pin_configure_dt(&enc_ch1_pins[i], GPIO_INPUT);
@@ -154,10 +158,11 @@ int speed_get(uint32_t* value){
         return NOT_INITIALISED;
 }
 
-
+#if defined(CONFIG_BOARD_NRF52840DONGLE_NRF52840)
 void enter_boot(void){
         gpio_pin_configure_dt(&out_boot, GPIO_OUTPUT);
 }
+#endif
 
 uint32_t get_current_max_speed(void){
         return max_mrpm;

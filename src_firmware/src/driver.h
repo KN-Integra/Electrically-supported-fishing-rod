@@ -48,8 +48,10 @@ int speed_pwm_set(uint32_t value);
 /// @return error defined in error_codes
 int speed_get(uint32_t* value);
 
+#if defined(CONFIG_BOARD_NRF52840DONGLE_NRF52840)
 /// @brief Enter bootloader mode (in order to flash new software via nRF connect programmer) 
 void enter_boot(void);
+#endif
 
 /// @brief Simple getter for max speed (set by init_pwm_motor_driver)
 /// @return max speed in mili RPM
