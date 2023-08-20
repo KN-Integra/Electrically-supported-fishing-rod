@@ -1,0 +1,98 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="DriverHostapp.Frontend.HostappMainWindow.MainWindow"
+        Title="Window with Button"
+        Width="250" Height="600">
+
+  <!-- Add button to window -->
+  <StackPanel>
+  <Border BorderThickness="5">
+  <StackPanel Height="100" Width="250">
+    <StackPanel.Background>
+        <ImageBrush Source="../Assets/Logo_white.png" />
+    </StackPanel.Background>
+    <Button Name="AppSettings" Click="OpenAppSettings" Opacity="100" VerticalAlignment="Top" HorizontalAlignment ="Right" Width="50" Height="30">
+      <Image Source="../Assets/Settings.png"/>
+    </Button>
+  </StackPanel>
+  </Border>
+  <Border BorderThickness="5">
+  <StackPanel>
+    <StackPanel Orientation="Horizontal" Width="250">
+      <ComboBox SelectedIndex="0" Name="SelectConnType" SelectionChanged="ConnType_SelectionChanged" Width="250">
+        <ComboBoxItem>Select connection type</ComboBoxItem>
+        <ComboBoxItem>Serial Shell</ComboBoxItem>
+        <ComboBoxItem>Bluetooth</ComboBoxItem>
+      </ComboBox>
+    </StackPanel>
+    <StackPanel Orientation="Horizontal" Name="ScanDevicesPanel" IsEnabled = "false" Width="250">
+      <Button Name="ScanDevicesButton" Click="ScanDevices"  Width="250">Scan devices</Button>
+    </StackPanel>
+    <StackPanel Orientation="Horizontal" Name="SelectDevicePanel" IsEnabled = "false" Width="250">
+      <ComboBox Name="SelectDeviceComboBox" SelectionChanged="SelectDevice_SelectionChanged" Width="250">
+      </ComboBox>
+    </StackPanel>
+    <StackPanel Name="ConnectToDevicePanel" Orientation="Horizontal" IsEnabled = "false"  Width="250">
+      <Button Name="ConnectToDeviceButton" Click="ConnectDevice" Width="200">Connect Device</Button>
+      <Button Name="ConnectionOptionsButton" Click="SetConnectionOptions" Width="50" Height="30">
+        <Image Source="../Assets/Settings.png"/>
+      </Button>
+    </StackPanel>
+    <StackPanel Name="SendInitPanel" Orientation="Horizontal" IsEnabled = "false" Width="250">
+      <Button Name="SendInitButton" Click="Init"  Width="200">Send Initialisation</Button>
+      <Button Name="InitParamsButton" Click="SetInitParams" Width="50" Height="30">
+        <Image Source="../Assets/Settings.png"/>
+      </Button>
+    </StackPanel>
+  </StackPanel>
+  </Border>
+  <Border BorderThickness="5">
+  <StackPanel>
+    <StackPanel Name="SetModePanel" Orientation="Horizontal" IsEnabled = "false" Width="250">
+      <Button Name="SetModeButton" Click="SetMode" Width="100">Set Mode</Button>
+      <ComboBox SelectedIndex="0" Name="SendModeComboBox" Width="150">
+        <ComboBoxItem>Speed</ComboBoxItem>
+        <ComboBoxItem>Position</ComboBoxItem>
+      </ComboBox>
+    </StackPanel>
+    <StackPanel Name="GetModePanel" Orientation="Horizontal" IsEnabled = "false" Width="250">
+      <Button Name="GetModeButton" Click="GetMode" Width="100">Get Mode</Button>
+      <TextBox Name="GetModeText" IsReadOnly="True" Width="150"></TextBox>
+    </StackPanel>
+  </StackPanel>
+  </Border>
+  <Border BorderThickness="5">
+  <StackPanel>
+    <StackPanel Name="SetSpeedPanel" Orientation="Horizontal" IsEnabled = "false" Width="250">
+      <Button Name="SetSpeedButton" Click="SetSpeed" Width="100">Set Speed</Button>
+      <TextBox Name="SetSpeedText" Watermark="32000" Width="150"></TextBox>
+    </StackPanel>
+    <StackPanel Name="GetSpeedPanel" Orientation="Horizontal" IsEnabled = "false"  Width="250">
+      <Button Name="GetSpeedButton" Click="GetSpeed" Width="100">Get Speed</Button>
+      <TextBox Name="GetSpeedText" IsReadOnly="True" Width="150"></TextBox>
+    </StackPanel>
+  </StackPanel>
+  </Border>
+  <Border BorderThickness="5">
+  <StackPanel>
+    <StackPanel Name="SetPosPanel" Orientation="Horizontal" IsEnabled = "false" Width="250">
+      <Button Name="SetPosButton" Click="SetPosition"  Width="100">Set Position</Button>
+      <TextBox Name="SetPosText" Watermark="180"  Width="150"></TextBox>
+    </StackPanel>
+    <StackPanel Name="GetPosPanel" Orientation="Horizontal" IsEnabled = "false" Width="250">
+      <Button Name="GetPosButton" Click="GetPosition"  Width="100">Get Position</Button>
+      <TextBox Name="GetPosText" IsReadOnly="True"  Width="150"></TextBox>
+    </StackPanel>
+  </StackPanel>
+  </Border>
+  <Border BorderThickness="5">
+  <StackPanel Name="OffOnPanel" IsEnabled = "false" Width="250">
+    <Button Name="OffOnButton" Click="OffOnDevice" Width="250">Turn motor</Button>
+    <StackPanel Orientation="Horizontal" >
+      <Button Name="GetOffOnButton" Click="GetOffOnState" Width="100">Get state</Button>
+      <TextBox Name="OffOnText" IsReadOnly="True" Width="150"></TextBox>
+    </StackPanel>
+  </StackPanel>
+  </Border>
+</StackPanel>
+</Window>

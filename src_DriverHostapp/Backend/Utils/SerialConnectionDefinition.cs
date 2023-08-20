@@ -1,8 +1,11 @@
 using System.IO.Ports;
 
-using driver_hostapp.backend.utils.error_codes;
+using System.Collections;
+using System.Collections.Generic;
 
-namespace driver_hostapp.backend.utils.serial_connection_definition{
+using DriverHostapp.Backend.Utils.ErrorCodes;
+
+namespace DriverHostapp.Backend.Utils.SerialConnectionDefinition{
     public class SerialDriverConnection{
         public string Port;
         public string HardwareID;
@@ -17,6 +20,10 @@ namespace driver_hostapp.backend.utils.serial_connection_definition{
         }
 
         public void open_serial_port(){
+            if(this.SerialConnection is not null){
+                throw new ReinitConnection("connection already opened!");
+            }
+
             this.SerialConnection = new SerialPort(this.Port);
             this.SerialConnection.BaudRate = 9600;
             this.SerialConnection.RtsEnable = true;
@@ -24,13 +31,18 @@ namespace driver_hostapp.backend.utils.serial_connection_definition{
             // TODO - what does this two options do?
 
             this.SerialConnection.ReadTimeout = 100;
+            this.SerialConnection.WriteTimeout = 100;
 
             this.SerialConnection.Open();
         }
 
         public void write_data(string str_of_data){
             if(this.SerialConnection is not null){
-                this.SerialConnection.Write(str_of_data);
+                try{
+                    this.SerialConnection.Write(str_of_data);
+                } catch {
+                    throw new WrongDevice($"Could not write to this device");
+                }
             } else {
                 throw new DeviceNotConnected($"Open Serial device {this.Port} before write attempt!");
             }
@@ -42,7 +54,7 @@ namespace driver_hostapp.backend.utils.serial_connection_definition{
                 while (true){
                     try{
                         string l = this.SerialConnection.ReadLine();
-                        recieved_lines.Add(l.Substring(0, l.Count()-1));
+                        recieved_lines.Add(l.Substring(0, l.Length-1));
                     } catch (System.TimeoutException){
                         break;
                     }
@@ -56,6 +68,9 @@ namespace driver_hostapp.backend.utils.serial_connection_definition{
 
         public void close_serial_port(){
             if(this.SerialConnection is not null){
+                if(!this.SerialConnection.IsOpen){
+                    throw new DeviceNotConnected($"Open Serial device {this.Port} before closing attempt!");
+                }
                 this.SerialConnection.Close();
                 this.SerialConnection = null;
              }else {
