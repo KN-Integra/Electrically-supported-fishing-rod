@@ -1,7 +1,8 @@
 #include <zephyr/kernel.h>
 
 #include <zephyr/usb/usb_device.h>
-
+#include "bas_gatt.h"
+#include "ble_gatt_service.h"
 #include <string.h>
 
 #include "driver.h"
@@ -29,8 +30,9 @@ void main(void)
 	int console_init(void);
 	printk("hello world");
 
-
 	motor_off();
+
+	bt_innit();
 	while (1) {
 
 		k_sleep(K_SECONDS(1U));

@@ -1,11 +1,16 @@
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/pwm.h>
-
+#include <zephyr/types.h>
 #include "driver.h"
 #include "button.h"
 
-static char* driver_ver = "0.1";
+//static char* driver_ver = "0.1";
+
+DriverVersion driver_ver = {
+        .major = 0,
+        .minor = 1,
+};
 
 volatile static uint32_t target_speed_mrpm = 0;// Target set by user
 volatile static uint32_t actual_mrpm = 0; // actual speed calculated from encoder pins
@@ -224,6 +229,10 @@ int motor_off(void){
         return NOT_INITIALISED;
 }
 
+uint32_t speed_target_get(){
+        return target_speed_mrpm;
+}
+
 #if defined(CONFIG_BOARD_NRF52840DONGLE_NRF52840)
 void enter_boot(void){
         gpio_pin_configure_dt(&out_boot, GPIO_OUTPUT);
@@ -250,6 +259,6 @@ int32_t get_ret_DEBUG(void){
         return ret_debug;
 }
 
-char* get_driver_version(void){
+DriverVersion get_driver_version(void){
         return driver_ver;
 }

@@ -118,7 +118,8 @@ static int cmd_debug(const struct shell *shell, size_t argc, char *argv[]){
 }
 
 static int cmd_drv_version(const struct shell *shell, size_t argc, char *argv[]){
-        shell_fprintf(shell, SHELL_ERROR, "Software version: %s \n", get_driver_version());
+        const DriverVersion tmp_ver = get_driver_version(); 
+        shell_fprintf(shell, SHELL_ERROR, "Software version: %d.%d \n", tmp_ver.major, tmp_ver.minor);
         return 0;
 }
 
