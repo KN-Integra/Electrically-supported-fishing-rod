@@ -31,6 +31,12 @@ typedef enum MotorDirection{
 
 } MotorDirection;
 
+typedef struct driver_ver_s
+{
+        uint8_t major;
+        uint8_t minor;
+} DriverVersion;
+
 /// @brief Function initalising PWMs (drivers) and GPIOs.
 /// @param speed_max_mrpm - max speed defined in mili RPM
 /// @return error defined in error_codes
@@ -71,4 +77,6 @@ uint64_t get_time_cycles_count_DEBUG(void);
 int32_t get_ret_DEBUG(void);
 uint32_t get_calc_speed_DEBUG(void);
 
-char* get_driver_version(void);
+DriverVersion get_driver_version(void);
+
+uint32_t speed_target_get(void);
