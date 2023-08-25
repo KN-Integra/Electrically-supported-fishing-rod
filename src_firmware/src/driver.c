@@ -1,6 +1,9 @@
+#include <zephyr/kernel.h>
+#include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/pwm.h>
 
 #include "driver.h"
+#include "button.h"
 
 static char* driver_ver = "0.1";
 
@@ -21,10 +24,14 @@ struct k_timer my_timer;
 
 volatile static bool drv_initialised = false; // was init command sent?
 
+volatile static bool is_motor_on = false; // was motor_on function called?
+
 
 static const struct pwm_dt_spec pwm_motor_driver = PWM_DT_SPEC_GET(DT_ALIAS(pwm_drv_ch1));
 
 static const struct gpio_dt_spec set_dir_p1 = GPIO_DT_SPEC_GET(DT_ALIAS(set_dir_p1_ch1), gpios);
+static const struct gpio_dt_spec set_dir_p2 = GPIO_DT_SPEC_GET(DT_ALIAS(set_dir_p2_ch1), gpios);
+
 #if defined(CONFIG_BOARD_NRF52840DONGLE_NRF52840)
 static const struct gpio_dt_spec out_boot = GPIO_DT_SPEC_GET(DT_ALIAS(enter_boot_p), gpios);
 #endif
@@ -34,9 +41,6 @@ static const struct gpio_dt_spec enc_p2_ch1 = GPIO_DT_SPEC_GET(DT_ALIAS(get_enc_
 
 static const struct gpio_dt_spec enc_ch1_pins[2] = {enc_p1_ch1, enc_p2_ch1};
 
-static struct gpio_callback enc1_cb;
-static struct gpio_callback enc2_cb;
-
 static struct gpio_callback enc_ch1_cb[2];
 
 
@@ -45,20 +49,21 @@ static int32_t ret_debug = 100;// DEBUG ONLY
 
 void update_speed_continuus(struct k_work *work)
 {
-    count_timer+=1;
-    uint64_t diff = count_cycles - old_count_cycles;
-    old_count_cycles = count_cycles;
+        count_timer+=1;
+        uint64_t diff = count_cycles - old_count_cycles;
+        old_count_cycles = count_cycles;
 
+        actual_mrpm = (diff*25)/4; //(diff*60)/(64*150) * 1000;
+        int32_t speed_delta = target_speed_mrpm - actual_mrpm;
 
-    actual_mrpm = (diff*25)/4; //(diff*60)/(64*150) * 1000;
-    int32_t speed_delta = target_speed_mrpm - actual_mrpm;
+        if(get_motor_off_on()){
+                uint8_t Kp_numerator = 4;
+                uint8_t Kp_denominator = 10;
+        
+                last_calculated_speed = (uint32_t)((int32_t)last_calculated_speed + (int32_t)(Kp_numerator*speed_delta/Kp_denominator)); // increase or decrese speed each iteration by Kp * speed_delta
 
-    uint8_t Kp_numerator = 4;
-    uint8_t Kp_denominator = 10;
-
-    last_calculated_speed = (uint32_t)((int32_t)last_calculated_speed + (int32_t)(Kp_numerator*speed_delta/Kp_denominator)); // increase or decrese speed each iteration by Kp * speed_delta
-
-    ret_debug = speed_pwm_set(last_calculated_speed);
+                ret_debug = speed_pwm_set(last_calculated_speed);
+        }
 }
 
 K_WORK_DEFINE(speed_update_work, update_speed_continuus);
@@ -93,7 +98,17 @@ int init_pwm_motor_driver(uint32_t speed_max_mrpm){
                 return GPIO_OUT_DIR_CNTRL_1_CHNL1_NOT_READY;
 	}
 
-	ret = gpio_pin_configure_dt(&set_dir_p1, GPIO_OUTPUT_ACTIVE);
+        ret = gpio_pin_configure_dt(&set_dir_p1, GPIO_OUTPUT_LOW);
+        if (0 != ret) {
+                return UNABLE_TO_SET_GPIO;
+        }
+
+        // TODO - move to function
+        if (!gpio_is_ready_dt(&set_dir_p2)) {
+                return GPIO_OUT_DIR_CNTRL_2_CHNL1_NOT_READY;
+	}
+        ret = gpio_pin_configure_dt(&set_dir_p2, GPIO_OUTPUT_LOW);
+
 
         if (0 != ret) {
                 return UNABLE_TO_SET_GPIO;
@@ -114,6 +129,8 @@ int init_pwm_motor_driver(uint32_t speed_max_mrpm){
         }
 
         k_timer_start(&my_timer, K_SECONDS(1), K_SECONDS(1));
+
+        off_on_button_init();
 
         drv_initialised = true;
 
@@ -158,11 +175,64 @@ int speed_get(uint32_t* value){
         return NOT_INITIALISED;
 }
 
+int motor_on(MotorDirection direction){
+        if(drv_initialised){
+                int ret;
+                count_cycles = 0;
+                old_count_cycles = 0;
+                if(direction == BACKWARD){
+                        ret = gpio_pin_set_dt(&set_dir_p1, 1);
+                        if(ret != 0){
+                                return UNABLE_TO_SET_GPIO;
+                        }
+                        ret = gpio_pin_set_dt(&set_dir_p2, 0);
+                        if(ret != 0){
+                                return UNABLE_TO_SET_GPIO;
+                        }
+                } else if(direction == FORWARD){
+                        ret = gpio_pin_set_dt(&set_dir_p1, 0);
+                        if(ret != 0){
+                                return UNABLE_TO_SET_GPIO;
+                        }
+                        ret = gpio_pin_set_dt(&set_dir_p2, 1);
+                        if(ret != 0){
+                                return UNABLE_TO_SET_GPIO;
+                        }
+                }
+
+                is_motor_on = true;
+                return SUCCESS;
+        }
+
+        return NOT_INITIALISED;
+}
+
+int motor_off(void){
+        if(drv_initialised){
+                int ret = gpio_pin_set_dt(&set_dir_p1, 0);
+                if(ret != 0){
+                        return UNABLE_TO_SET_GPIO;
+                }
+                ret = gpio_pin_set_dt(&set_dir_p2, 0);
+                if(ret != 0){
+                        return UNABLE_TO_SET_GPIO;
+                }
+                is_motor_on = false;
+                return SUCCESS;
+        }
+
+        return NOT_INITIALISED;
+}
+
 #if defined(CONFIG_BOARD_NRF52840DONGLE_NRF52840)
 void enter_boot(void){
         gpio_pin_configure_dt(&out_boot, GPIO_OUTPUT);
 }
 #endif
+
+bool get_motor_off_on(void){
+        return is_motor_on;
+}
 
 uint32_t get_current_max_speed(void){
         return max_mrpm;
