@@ -1,0 +1,272 @@
+@startuml WWE
+allow_mixing
+skin rose
+
+title Electrically Supported Fishing Rod - "WWE Sumołów 2000"
+
+node HostApp{
+  package Frontend{
+    class MainWindow {
+      - uint? TechnologyIndex
+      - List<CallbackInterface> BackendImplementations
+      + NLog.Logger? Logger
+      + MainWindow()
+      - void OpenAppSettings(object sender)
+      + void EnableLogging()
+      + void DisableLogging()
+      - void ConnType_SelectionChanged(object sender)
+      - void ScanDevices(object sender)
+      - void SelectDevice_SelectionChanged(object sender)
+      - void ConnectDevice(object sender)
+      - void OpenConnectionOptions(object sender)
+      - void Init(object sender)
+      - void OpenInitParams(object sender)
+      ..
+      - void SetMode(object sender)
+      - void GetMode(object sender)
+      - void updateModeTextBox()
+      - void enableDisableGuiElementsSetSpeedPos()
+      {method} TODO - Not fully implemented
+      ..
+      - void SetSpeed(object sender)
+      - void GetSpeed(object sender)
+      ..
+      - void SetPosition(object sender)
+      - void GetPosition(object sender)
+      {method} TODO - Not fully implemented
+      ..
+      - void OffOnDevice(object sender)
+      - void GetOffOnState(object sender)
+      - void enableDisableGuiElementsOffOn()
+      ..
+      - void disableStackPanels(List<string> namesOfPanels)
+      - void openMessageWindow(string message)
+    }
+
+    class MessageBox {
+      + MessageBox()
+      + Task<> Show()
+    }
+
+    class InitOptions {
+      + InitOptions()
+      - void UpdateInitValues()
+      - void SaveInitConfigToFile()
+      - void LoadInitConfigToFile()
+      {method} TODO - Not fully implemented
+    }
+
+    class ConnectionOptions {
+      +ConnectionOptions()
+      TODO
+      {method} TODO - Not fully implemented
+    }
+
+    class GeneralSettings {
+      - MainWindow ParentWindow
+      + GeneralSettings(MainWindow parentWindow)
+      + void Show()
+      - void LoggingCheckBox_Checked()
+      - void LoggingCheckBox_UnChecked()
+    }
+  }
+
+  package Backend{
+    class CallbackBT {
+      TODO - To be implemented
+      + CallbackBT()
+      + void ListDevices()
+      + List<string> GetConnectionsAsStringList();
+       {method} etc.
+    }
+
+    class CallbackSerialShell {
+      - List<SerialDriverConnection> ListOfDevices
+      - uint? connectionIndex
+      + HostappBackendSerial()
+      + void ListDevices()
+      + List<string> GetConnectionsAsStringList();
+       {method} etc.
+    }
+
+    Interface CallbackInterface {
+      + void ListDevices()
+      + List<string> GetConnectionsAsStringList();
+      + void ChooseConnectionByIndex(uint index);
+      + void OpenConnection();
+      ..
+      + void SendInitialisation();
+      ..
+      + void SetMode(ControlMode new_mode);
+      + ControlMode GetMode();
+      ..
+      + void SetSpeed(uint target_speed_in_mrpm);
+      + uint GetSpeed();
+      ..
+      + void SetPosition(uint new_position);
+      + uint GetPosition();
+      ..
+      + void TurnDriverOn();
+      + void TurnDriverOff();
+      + bool GetOfOon();
+      ..
+      + void CloseConnection();
+    }
+
+    package Utils{
+      Enum ControlModes_Cs {
+        SPEED,
+        POSITION
+      }
+
+      Enum MotorDirection_Cs{
+        FORWARD,
+        BACKWARD
+      }
+
+      package Exceptions{
+        DriverException <|-up- Exception
+        class DriverException {
+        }
+
+        DeviceNotConnectedException <|-up- DriverException
+
+        class DeviceNotConnectedException  {
+        }
+
+        ErrorFromDriverException <|-up- DriverException
+
+        class ErrorFromDriverException  {
+        }
+
+        etc <|-up- DriverException
+
+        class etc  {
+        }
+      }
+
+      class SerialDriverConnection{
+        + string Port
+        + string HardwareID
+        + string SoftwareVersion
+        - SerialPort? SerialConnection
+        + SerialDriverConnection(string port, string hw_id, string sw_ver)
+        + void open_serial_port()
+        + void write_data(string str_of_data)
+        + List<string> read_lines()
+        + void close_serial_port()
+
+      }
+    }
+  }
+}
+
+CallbackBT <|-- CallbackInterface
+CallbackSerialShell <|-- CallbackInterface
+CallbackInterface  *--  ControlModes_Cs
+CallbackInterface  *--  MotorDirection_Cs
+CallbackInterface  *--  DriverException
+
+CallbackSerialShell  *--  SerialDriverConnection
+
+MainWindow  *--  CallbackInterface
+MainWindow  *--  GeneralSettings
+MainWindow  *--  InitOptions
+MainWindow  *--  ConnectionOptions
+
+node nRF52840Dongle{
+  object MotorDriver {
+    - DriverVersion driver_ver
+    - uint32_t target_speed_mrpm
+    - uint32_t actual_mrpm
+    - int32_t speed_control
+    - uint64_t count_cycles
+    - uint64_t old_count_cycles
+    - uint64_t count_timer
+    ..
+    + int init_pwm_motor_driver(uint32_t speed_max_mrpm)
+    ..
+    + int target_speed_set(uint32_t value)
+    - int speed_pwm_set(uint32_t value)
+    - void enc_ch1_callback()
+    - update_speed_continuus()
+    + int speed_get(uint32_t* value)
+    ..
+    + int motor_on(MotorDirection direction)
+    + int motor_off(void)
+    ..
+    Mode Control - TODO
+    ..
+    Position Control - TODO
+    ..
+    + void enter_boot(void)
+    + uint32_t get_current_max_speed(void)
+    + bool get_motor_off_on(void)
+    + uint32_t get_target_speed(void)
+    + DriverVersion get_driver_version(void)
+  }
+
+  package BLE{
+    object ble_gatt {
+      - read_ble()
+      - write_ble()
+    }
+
+    object ble_gatt_service {
+      + init_bt()
+      - connected()
+      - disconnected()
+      - bt_ready()
+      - auth_cancel()
+    }
+  }
+
+  object serial_shell {
+    - int cmd_init()
+    - int cmd_speed()
+    - int cmd_off_on()
+    - int cmd_boot()
+    - int cmd_drv_version()
+  }
+
+  object button {
+    + void off_on_button_init(void)
+    - void off_on_callback();
+    - void calback_cooldown_expired()
+  }
+
+  package driver_utlis{
+    Enum ErrorCodes{
+      SUCCESS = 0,
+      NOT_INITIALISED = 1,
+      etc...
+    }
+
+    Enum MotorDirection_C{
+      FORWARD,
+      BACKWARD
+    }
+
+    Enum ControlModes_C {
+      SPEED,
+      POSITION
+    }
+
+    Struct DriverVersion {
+      uint8_t major_version
+      uint8_t minor_version
+    }
+  }
+}
+
+serial_shell .down. CallbackSerialShell
+BLE .down. CallbackBT
+
+MotorDriver <.down. serial_shell
+MotorDriver <.down. BLE
+
+MotorDriver <.left.. button
+
+driver_utlis <. MotorDriver
+
+@enduml
