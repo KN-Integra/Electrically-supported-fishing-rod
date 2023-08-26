@@ -17,3 +17,4 @@ Left pads for switch ON/OFF connection & LCD reset.
 ![image](https://github.com/eSqadron/Electrically-supported-fishing-rod/assets/75276739/f771859e-c4f4-448e-9e45-0ea538b86819)
 
 ![image](https://github.com/eSqadron/Electrically-supported-fishing-rod/assets/75276739/a6f4e09b-8165-492e-9409-770386c0a31a)
+![image](https://github.com/eSqadron/Electrically-supported-fishing-rod/assets/75276739/93ef9d11-6a9a-4f4f-82c7-f4159f647ee8)
