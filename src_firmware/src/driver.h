@@ -69,5 +69,6 @@ bool get_motor_off_on(void);
 uint64_t get_cycles_count_DEBUG(void);
 uint64_t get_time_cycles_count_DEBUG(void);
 int32_t get_ret_DEBUG(void);
+uint32_t get_calc_speed_DEBUG(void);
 
 char* get_driver_version(void);

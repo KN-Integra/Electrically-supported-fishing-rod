@@ -109,10 +109,12 @@ static int cmd_boot(const struct shell *shell, size_t argc, char *argv[]){
 static int cmd_debug(const struct shell *shell, size_t argc, char *argv[]){
         shell_fprintf(shell, SHELL_INFO, "Current cycles count: %" PRIu64  "\n"
                                          "Time cycles count: %" PRIu64  "\n"
-                                         "Ret: %d\n",
+                                         "Ret: %d\n"
+                                         "CalcSpeed: %u\n",
         get_cycles_count_DEBUG(),
         get_time_cycles_count_DEBUG(),
-        get_ret_DEBUG()
+        get_ret_DEBUG(),
+        get_calc_speed_DEBUG()
         );
         return 0;
 }
