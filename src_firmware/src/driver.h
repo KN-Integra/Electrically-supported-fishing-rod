@@ -1,3 +1,5 @@
+#include <zephyr/kernel.h>
+
 /// @brief Error code definitions for motor driver
 enum error_codes{
         SUCCESS = 0,

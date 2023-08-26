@@ -1,11 +1,9 @@
-#include <zephyr/kernel.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/pwm.h>
 #include <zephyr/types.h>
 #include "driver.h"
 #include "button.h"
 
-//static char* driver_ver = "0.1";
 
 DriverVersion driver_ver = {
         .major = 0,
@@ -139,7 +137,7 @@ int init_pwm_motor_driver(uint32_t speed_max_mrpm){
                 // TODO - ret error checking!!
         }
 
-        k_timer_start(&my_timer, K_SECONDS(1), K_SECONDS(1));
+        k_timer_start(&my_timer, K_MSEC(1000), K_MSEC(1000));
 
         off_on_button_init();
 
@@ -161,9 +159,9 @@ int speed_pwm_set(uint32_t value){
                 return NOT_INITIALISED;
         }
 
-                if(value > max_mrpm){
-                        return DESIRED_SPEED_TO_HIGH;
-                }
+        if(value > max_mrpm){
+                return DESIRED_SPEED_TO_HIGH;
+        }
 
         if(target_speed_mrpm < max_mrpm/10){
                 value = 0;
@@ -178,7 +176,7 @@ int speed_pwm_set(uint32_t value){
                 return UNABLE_TO_SET_PWM_CHNL1;
         }
 
-        return NOT_INITIALISED;
+        return SUCCESS;
 }
 
 int speed_get(uint32_t* value){
