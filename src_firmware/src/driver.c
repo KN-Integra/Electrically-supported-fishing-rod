@@ -1,4 +1,3 @@
-#include <zephyr/kernel.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/pwm.h>
 #include <zephyr/types.h>
@@ -133,7 +132,7 @@ int init_pwm_motor_driver(uint32_t speed_max_mrpm){
                 // TODO - ret error checking!!
         }
 
-        k_timer_start(&my_timer, K_SECONDS(1), K_SECONDS(1));
+        k_timer_start(&my_timer, K_MSEC(1000), K_MSEC(1000));
 
         off_on_button_init();
 
@@ -144,31 +143,31 @@ int init_pwm_motor_driver(uint32_t speed_max_mrpm){
 
 int target_speed_set(uint32_t value){
         target_speed_mrpm = value;
+        count_cycles = 0;
+        old_count_cycles = 0;
         return speed_pwm_set(value);
 }
 
 int speed_pwm_set(uint32_t value){
         int ret;
         last_calculated_speed = value;
-        if(drv_initialised){
-
-                if(value > max_mrpm){
-                        return DESIRED_SPEED_TO_HIGH;
-                }
-
-                uint64_t w_1 = pwm_motor_driver.period * (uint64_t)value;
-                uint32_t w = (uint32_t)(w_1/max_mrpm);
-                
-                ret = pwm_set_pulse_dt(&pwm_motor_driver, w);
-                if(0 == ret){
-                        return SUCCESS;
-                }
-                else{
-                        return UNABLE_TO_SET_PWM_CHNL1;
-                }
+        if(!drv_initialised){
+                return NOT_INITIALISED;
         }
 
-        return NOT_INITIALISED;
+        if(value > max_mrpm){
+                value = max_mrpm;
+        }
+
+        uint64_t w_1 = pwm_motor_driver.period * (uint64_t)value;
+        uint32_t w = (uint32_t)(w_1/max_mrpm);
+        
+        ret = pwm_set_pulse_dt(&pwm_motor_driver, w);
+        if(ret != 0){
+                return UNABLE_TO_SET_PWM_CHNL1;
+        }
+
+        return SUCCESS;
 }
 
 int speed_get(uint32_t* value){

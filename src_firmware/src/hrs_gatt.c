@@ -63,8 +63,12 @@ static ssize_t read_blsc(struct bt_conn *conn, const struct bt_gatt_attr *attr,
 
 uint32_t convertToUint32(uint8_t *bytes) {
     uint32_t result = 0;
+
     memcpy(&result , bytes , 4U);
-    return result;
+
+	// swap endianness	
+	result = ((result << 8) & 0xFF00FF00 ) | ((result >> 8) & 0xFF00FF );
+    return (result << 16) | (result >> 16);
 }
 
 static ssize_t write_blsc(struct bt_conn *conn, const struct bt_gatt_attr *attr,
