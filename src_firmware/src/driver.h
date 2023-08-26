@@ -1,6 +1,3 @@
-#include<zephyr/kernel.h>
-#include <zephyr/drivers/gpio.h>
-
 /// @brief Error code definitions for motor driver
 enum error_codes{
         SUCCESS = 0,
@@ -28,6 +25,12 @@ enum error_codes{
         UNABLE_TO_SET_GPIO = 16
 };
 
+typedef enum MotorDirection{
+        FORWARD,
+        BACKWARD
+
+} MotorDirection;
+
 /// @brief Function initalising PWMs (drivers) and GPIOs.
 /// @param speed_max_mrpm - max speed defined in mili RPM
 /// @return error defined in error_codes
@@ -48,6 +51,10 @@ int speed_pwm_set(uint32_t value);
 /// @return error defined in error_codes
 int speed_get(uint32_t* value);
 
+int motor_on(MotorDirection direction);
+
+int motor_off(void);
+
 #if defined(CONFIG_BOARD_NRF52840DONGLE_NRF52840)
 /// @brief Enter bootloader mode (in order to flash new software via nRF connect programmer) 
 void enter_boot(void);
@@ -56,6 +63,8 @@ void enter_boot(void);
 /// @brief Simple getter for max speed (set by init_pwm_motor_driver)
 /// @return max speed in mili RPM
 uint32_t get_current_max_speed(void);
+
+bool get_motor_off_on(void);
 
 uint64_t get_cycles_count_DEBUG(void);
 uint64_t get_time_cycles_count_DEBUG(void);
