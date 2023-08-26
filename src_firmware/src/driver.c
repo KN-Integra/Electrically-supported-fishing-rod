@@ -1,11 +1,14 @@
-#include <zephyr/kernel.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/pwm.h>
-
+#include <zephyr/types.h>
 #include "driver.h"
 #include "button.h"
 
-static char* driver_ver = "0.1";
+
+DriverVersion driver_ver = {
+        .major = 0,
+        .minor = 1,
+};
 
 volatile static uint32_t target_speed_mrpm = 0;// Target set by user
 volatile static uint32_t actual_mrpm = 0; // actual speed calculated from encoder pins
@@ -134,7 +137,7 @@ int init_pwm_motor_driver(uint32_t speed_max_mrpm){
                 // TODO - ret error checking!!
         }
 
-        k_timer_start(&my_timer, K_SECONDS(1), K_SECONDS(1));
+        k_timer_start(&my_timer, K_MSEC(1000), K_MSEC(1000));
 
         off_on_button_init();
 
@@ -156,9 +159,9 @@ int speed_pwm_set(uint32_t value){
                 return NOT_INITIALISED;
         }
 
-                if(value > max_mrpm){
-                        return DESIRED_SPEED_TO_HIGH;
-                }
+        if(value > max_mrpm){
+                return DESIRED_SPEED_TO_HIGH;
+        }
 
         if(target_speed_mrpm < max_mrpm/10){
                 value = 0;
@@ -173,7 +176,7 @@ int speed_pwm_set(uint32_t value){
                 return UNABLE_TO_SET_PWM_CHNL1;
         }
 
-        return NOT_INITIALISED;
+        return SUCCESS;
 }
 
 int speed_get(uint32_t* value){
@@ -234,6 +237,10 @@ int motor_off(void){
         return NOT_INITIALISED;
 }
 
+uint32_t speed_target_get(){
+        return target_speed_mrpm;
+}
+
 #if defined(CONFIG_BOARD_NRF52840DONGLE_NRF52840)
 void enter_boot(void){
         gpio_pin_configure_dt(&out_boot, GPIO_OUTPUT);
@@ -264,6 +271,6 @@ uint32_t get_calc_speed_DEBUG(void){
         return speed_control;
 }
 
-char* get_driver_version(void){
+DriverVersion get_driver_version(void){
         return driver_ver;
 }
