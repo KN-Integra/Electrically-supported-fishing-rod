@@ -7,7 +7,6 @@ CMD_BOOT_BYTES = b'\x01'
 CMD_SPEED_BYTES = b'\x02'
 CMD_DRIVER_BYTES = b'\x03'
 CMD_DEBUG_BYTES = b'\x04'
-# NOTIFY_SPEED_CHARACTERISTIC_UUID = "00002a37-0000-1000-8000-00805f9b34fb"
 READ_CHARACTERISTIC_UUID = "00002a38-0000-1000-8000-00805f9b34fb"
 WRITE_CHARACTRERISTIC_UUID ="00002a39-0000-1000-8000-00805f9b34fb"
 
@@ -40,7 +39,7 @@ class BluetoothDesktopClient():
             print("connection state:",self.wyndka_client.is_connected)
         else:
             print("Failed to find Wyndka, make sure that the device is powered on\n\
-If it is, then try to run scan, and connect using the proper mac address")
+                  If it is, then try to run scan, and connect using the proper mac address")
 
     async def cmd_connect(self, addr: str) -> bool:
         print("connecting...")
@@ -81,12 +80,6 @@ If it is, then try to run scan, and connect using the proper mac address")
         response = await self.wyndka_client.read_gatt_char(READ_CHARACTERISTIC_UUID)
         print("Current Driver Version: ", response[0], '.', response[1], sep='')
 
-    # async def cmd_debug(self):
-    #     cmd = CMD_DEBUG_BYTES
-    #     await self.wyndka_client.write_gatt_char(WRITE_CHARACTRERISTIC_UUID, cmd, response=False)
-    #     response = await self.wyndka_client.read_gatt_char(READ_CHARACTERISTIC_UUID)
-    #     print("Debug values: ", response)
-
     async def cmd_speed_set(self, speed_val: int):
         print("setting speed...")
         try:
@@ -108,16 +101,6 @@ If it is, then try to run scan, and connect using the proper mac address")
         print("disconnecting...")
         await self.wyndka_client.disconnect()
         print("disconnected")
-
-    # async def speed_notify(self):
-    #     print("starting listening to speed")
-    #     await self.wyndka_client.start_notify(NOTIFY_SPEED_CHARACTERISTIC_UUID, self._notify_callback)
-
-    # async def speed_notify_stop(self):
-    #     await self.wyndka_client.stop_notify(NOTIFY_SPEED_CHARACTERISTIC_UUID)
-
-    # def _notify_callback(self, sender: BleakGATTCharacteristic, data: bytearray):
-    #     print("Current speed (notify): ", int.from_bytes(data[0:4]))
 
     async def start_repl(self):
         self.running = True
@@ -146,16 +129,10 @@ If it is, then try to run scan, and connect using the proper mac address")
                             await self.cmd_speed_get()
                         elif cmd[1] == "set":
                             await self.cmd_speed_set(int(cmd[2]))
-                    # elif cmd[0] == "notify":
-                    #     await self.speed_notify()
-                    # elif cmd[0] == "stop_notify":
-                    #     await self.speed_notify_stop()
                     elif cmd[0] == "boot" and self.wyndka_client.is_connected:
                         await self.cmd_boot()
                     elif cmd[0] == "driver" and self.wyndka_client.is_connected:
                         await self.cmd_driver()
-                    # elif cmd[0] == "debug" and self.wyndka_client.is_connected:
-                        # await self.cmd_debug()
                     elif cmd[0] == "disconnect":
                         await self.cmd_disconnect()
                     elif cmd[0] == "exit":
