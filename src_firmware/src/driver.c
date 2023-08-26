@@ -12,7 +12,7 @@ volatile static uint32_t actual_mrpm = 0; // actual speed calculated from encode
 
 volatile static uint32_t max_mrpm = 0;// max rpm set by user in init (read from documentation)
 
-static uint32_t last_calculated_speed = 0; // temporary speed used for PID calculations
+static uint32_t speed_control = 0; // temporary speed used for PID calculations
 
 
 /// variables used for actual speed calculation based on encoder pin and timer interrupts
@@ -50,19 +50,25 @@ static int32_t ret_debug = 100;// DEBUG ONLY
 void update_speed_continuus(struct k_work *work)
 {
         count_timer+=1;
-        uint64_t diff = count_cycles - old_count_cycles;
+        uint64_t diff = 0;
+        if(count_cycles > old_count_cycles){
+                diff = count_cycles - old_count_cycles;
+        }
         old_count_cycles = count_cycles;
 
         actual_mrpm = (diff*25)/4; //(diff*60)/(64*150) * 1000;
         int32_t speed_delta = target_speed_mrpm - actual_mrpm;
 
         if(get_motor_off_on()){
-                uint8_t Kp_numerator = 4;
-                uint8_t Kp_denominator = 10;
-        
-                last_calculated_speed = (uint32_t)((int32_t)last_calculated_speed + (int32_t)(Kp_numerator*speed_delta/Kp_denominator)); // increase or decrese speed each iteration by Kp * speed_delta
+                int8_t Kp_numerator = 4;
+                int8_t Kp_denominator = 10;
 
-                ret_debug = speed_pwm_set(last_calculated_speed);
+                int64_t temp_modifier_num = Kp_numerator*speed_delta;
+                int32_t temp_modifier = (int32_t)(temp_modifier_num/Kp_denominator);
+
+                speed_control = (uint32_t)(speed_control + temp_modifier); // increase or decrese speed each iteration by Kp * speed_delta
+
+                ret_debug = speed_pwm_set(speed_control);
         }
 }
 
@@ -139,28 +145,32 @@ int init_pwm_motor_driver(uint32_t speed_max_mrpm){
 
 int target_speed_set(uint32_t value){
         target_speed_mrpm = value;
-        return speed_pwm_set(value);
+        count_cycles = 0;
+        old_count_cycles = 0;
+        return SUCCESS;
 }
 
 int speed_pwm_set(uint32_t value){
         int ret;
-        last_calculated_speed = value;
-        if(drv_initialised){
+        if(!drv_initialised){
+                return NOT_INITIALISED;
+        }
 
                 if(value > max_mrpm){
                         return DESIRED_SPEED_TO_HIGH;
                 }
 
-                uint64_t w_1 = pwm_motor_driver.period * (uint64_t)value;
-                uint32_t w = (uint32_t)(w_1/max_mrpm);
-                
-                ret = pwm_set_pulse_dt(&pwm_motor_driver, w);
-                if(0 == ret){
-                        return SUCCESS;
-                }
-                else{
-                        return UNABLE_TO_SET_PWM_CHNL1;
-                }
+        if(target_speed_mrpm < max_mrpm/10){
+                value = 0;
+                speed_control = 0;
+        }
+
+        uint64_t w_1 = pwm_motor_driver.period * (uint64_t)value;
+        uint32_t w = value!=0 ? (uint32_t)(w_1/max_mrpm) : 0;
+        
+        ret = pwm_set_pulse_dt(&pwm_motor_driver, w);
+        if(ret != 0){
+                return UNABLE_TO_SET_PWM_CHNL1;
         }
 
         return NOT_INITIALISED;
@@ -248,6 +258,10 @@ uint64_t get_time_cycles_count_DEBUG(void){
 
 int32_t get_ret_DEBUG(void){
         return ret_debug;
+}
+
+uint32_t get_calc_speed_DEBUG(void){
+        return speed_control;
 }
 
 char* get_driver_version(void){
