@@ -1,10 +1,15 @@
- using System.IO.Ports;//dotnet add package System.IO.Ports --version 7.0.0
+using System;
+using System.IO.Ports;//dotnet add package System.IO.Ports --version 7.0.0
 
-using driver_hostapp.backend.callback_interface;
-using driver_hostapp.backend.utils.serial_connection_definition;
-using driver_hostapp.backend.utils.error_codes;
+using System.Collections;
+using System.Collections.Generic;
 
-namespace driver_hostapp.backend.callback_serial{
+using DriverHostapp.Backend.CallbackInterface;
+using DriverHostapp.Backend.Utils.SerialConnectionDefinition;
+using DriverHostapp.Backend.Utils.ErrorCodes;
+using DriverHostapp.Backend.Utils.ControlModes;
+
+namespace DriverHostapp.Backend.CallbackSerialShell{
     public class HostappBackendSerial : IHostappBackend{
 
         private List<SerialDriverConnection> ListOfDevices;
@@ -96,7 +101,7 @@ namespace driver_hostapp.backend.callback_serial{
         }
 
         public void choose_connection_by_index(uint index){
-            if(index >= this.ListOfDevices.Count()){
+            if(index >= this.ListOfDevices.Count){
                 throw new NonExistingDevice($"id. {index} is not in the list of possible Serial connections!");
             }
             this.connection_index = index;            
@@ -118,11 +123,35 @@ namespace driver_hostapp.backend.callback_serial{
             this.get_return_from_device_with_error_check("initialisation succesful!");
         }
 
-        public void set_mode(){
-
+        public void set_mode(ControlMode new_mode){
+            if(connection_index is null){
+                throw new DeviceNotChosen("Cannot send mode if no connection was chosen!");
+            }
+            this.ListOfDevices[(int)this.connection_index].write_data($"mode {new_mode.ToString().ToLower()}\n");
+            this.get_return_from_device_with_error_check($"mode set to: {new_mode.ToString().ToLower()}");
         }
-        public void get_mode(){
+        public ControlMode get_mode(){
+            if(connection_index is null){
+                throw new DeviceNotChosen("Cannot send speed if no connection was chosen!");
+            }
+            this.ListOfDevices[(int)this.connection_index].write_data($"mode\n");
+            List<string> lines = this.ListOfDevices[(int)this.connection_index].read_lines();
 
+            string error_code = "";
+
+            foreach (string l in lines){
+                if(l.Contains("mode: ")){
+                    if(l.Substring(6) == "0"){
+                        return ControlMode.Speed;
+                    } else if(l.Substring(6) == "1"){
+                        return ControlMode.Position;
+                    }
+                } else{
+                    error_code = l;
+                }
+            }
+
+            return ControlMode.Speed;
         }
 
         public void set_speed(uint target_speed_in_mrpm){
@@ -131,15 +160,14 @@ namespace driver_hostapp.backend.callback_serial{
             }
             this.ListOfDevices[(int)this.connection_index].write_data($"speed {target_speed_in_mrpm}\n");
             this.get_return_from_device_with_error_check($"speed set to: {target_speed_in_mrpm}");
-            
         }
+
         public uint get_speed(){
             if(connection_index is null){
                 throw new DeviceNotChosen("Cannot get speed if no connection was chosen!");
             }
 
             this.ListOfDevices[(int)this.connection_index].write_data($"speed\n");
-
 
             List<string> lines = this.ListOfDevices[(int)this.connection_index].read_lines();
 
@@ -154,14 +182,54 @@ namespace driver_hostapp.backend.callback_serial{
             }
 
             throw new ErrorFromDriver(error_code);
-
         }
 
         public void set_position(){
-
+            // NOT YET IMPLEMENTED
         }
-        public void get_position(){
 
+        public uint get_position(){
+            // NOT YET IMPLEMENTED
+            return 0u;
+        }
+
+        public void turn_driver_on(){
+            if(connection_index is null){
+                throw new DeviceNotChosen("Cannot get speed if no connection was chosen!");
+            }
+
+            this.ListOfDevices[(int)this.connection_index].write_data("start --on\n");
+            this.get_return_from_device_with_error_check("Operation executed!");
+        }
+
+        public void turn_driver_off(){
+            if(connection_index is null){
+                throw new DeviceNotChosen("Cannot get speed if no connection was chosen!");
+            }
+
+            this.ListOfDevices[(int)this.connection_index].write_data("start --off\n");
+            this.get_return_from_device_with_error_check("Operation executed!");
+        }
+        
+        public bool get_off_on(){
+            if(connection_index is null){
+                throw new DeviceNotChosen("Cannot get speed if no connection was chosen!");
+            }
+
+            this.ListOfDevices[(int)this.connection_index].write_data("start --get\n");
+
+            List<string> lines = this.ListOfDevices[(int)this.connection_index].read_lines();
+            string error_code = "";
+            foreach (string l in lines){
+                if(l.Contains("Motor is turned on!")){
+                    return true;
+                } else if(l.Contains("Motor is turned off!")){
+                    return false;
+                } else{ 
+                    error_code = l;
+                }
+            }
+            throw new ErrorFromDriver(error_code);
         }
 
         public void close_connection(){

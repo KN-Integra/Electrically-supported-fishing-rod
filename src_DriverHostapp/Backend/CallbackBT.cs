@@ -1,10 +1,16 @@
-using driver_hostapp.backend.callback_interface;
+using System.Collections;
+using System.Collections.Generic;
 
-namespace driver_hostapp.backend.callback_bt{
+using DriverHostapp.Backend.CallbackInterface;
+using DriverHostapp.Backend.Utils.ControlModes;
+
+// STUB
+// NOT YET IMPLEMENTED
+
+namespace DriverHostapp.Backend.CallbackBT{
     public class HostappBackendBluetooth : IHostappBackend{
 
         public void list_devices(){
-            Console.WriteLine("bt init");
         }
 
         public List<string> get_connections_as_string_list(){
@@ -23,11 +29,11 @@ namespace driver_hostapp.backend.callback_bt{
 
         }
 
-        public void set_mode(){
+        public void set_mode(ControlMode new_mode){
 
         }
-        public void get_mode(){
-
+        public ControlMode get_mode(){
+            return ControlMode.Speed;
         }
 
         public void set_speed(uint target_speed_in_mrpm){
@@ -40,8 +46,20 @@ namespace driver_hostapp.backend.callback_bt{
         public void set_position(){
 
         }
-        public void get_position(){
+        public uint get_position(){
+            return 0u;
+        }
 
+        public void turn_driver_on(){
+
+        }
+
+        public void turn_driver_off(){
+
+        }
+
+        public bool get_off_on(){
+            return false;
         }
 
         public void close_connection(){

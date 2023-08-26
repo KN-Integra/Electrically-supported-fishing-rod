@@ -1,4 +1,8 @@
-namespace driver_hostapp.backend.callback_interface{
+using System.Collections;
+using System.Collections.Generic;
+using DriverHostapp.Backend.Utils.ControlModes;
+
+namespace DriverHostapp.Backend.CallbackInterface{
     public interface IHostappBackend{
         void list_devices();
 
@@ -9,14 +13,19 @@ namespace driver_hostapp.backend.callback_interface{
 
         void send_configuration();
 
-        void set_mode();
-        void get_mode();
+        void set_mode(ControlMode new_mode);
+        ControlMode get_mode();
 
         void set_speed(uint target_speed_in_mrpm);
         uint get_speed();
 
         void set_position();
-        void get_position();
+        uint get_position();
+
+        void turn_driver_on();
+        void turn_driver_off();
+
+        bool get_off_on();
 
         void close_connection();
     }
