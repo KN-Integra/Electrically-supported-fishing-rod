@@ -12,40 +12,44 @@ static ssize_t read_ble(struct bt_conn *conn, const struct bt_gatt_attr *attr,
 				 sizeof(ble_buff));
 }
 
-uint32_t convertToUint32(uint8_t *bytes) {
+uint32_t convertToUint32(uint8_t *bytes)
+{
 	uint32_t result = 0;
 
-	memcpy(&result , bytes , 4U);
+	memcpy(&result, bytes, 4U);
 
-	// swap endianness	
-	result = ((result << 8) & 0xFF00FF00 ) | ((result >> 8) & 0xFF00FF );
+	// swap endianness
+	result = ((result << 8) & 0xFF00FF00) | ((result >> 8) & 0xFF00FF);
 	return (result << 16) | (result >> 16);
 }
 
 static ssize_t write_ble(struct bt_conn *conn, const struct bt_gatt_attr *attr,
-			 const void *buf, uint16_t len, uint16_t offset , uint8_t flag)
+			 const void *buf, uint16_t len, uint16_t offset, uint8_t flag)
 {
 	uint8_t *data = (uint8_t *)buf;
-	if(len == 1){
-		if(data[0] == 0){
+
+	if (len == 1) {
+		if (data[0] == 0) {
 			init_pwm_motor_driver(67000u);
 		}
 	#if defined(CONFIG_BOARD_NRF52840DONGLE_NRF52840)
 
-		else if(data[0] == 1){
+		else if (data[0] == 1) {
 			enter_boot();
 		}
 	#endif
-		else if (data[0] == 2){
+		else if (data[0] == 2) {
 			uint32_t speed_tmp = speed_target_get();
+
 			memcpy(ble_buff, &speed_tmp, sizeof(speed_tmp));
-			
-		}else if(data[0] == 3){
-			const DriverVersion tmp_ver = get_driver_version();
+
+		} else if (data[0] == 3) {
+			const struct DriverVersion tmp_ver = get_driver_version();
+
 			memcpy(ble_buff, &tmp_ver, 2U);
 		}
 		return len;
-	}else if(len == 5){
+	} else if (len == 5) {
 		target_speed_set(convertToUint32(data+1U));
 	}
 	return len;

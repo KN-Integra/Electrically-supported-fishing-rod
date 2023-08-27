@@ -52,7 +52,8 @@ static struct bt_conn_auth_cb auth_cb_display = {
 	.cancel = auth_cancel,
 };
 
-int init_bt(void){
+int init_bt(void)
+{
 	int err;
 
 	err = bt_enable(NULL);
