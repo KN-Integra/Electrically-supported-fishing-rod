@@ -14,6 +14,7 @@ namespace DriverHostapp.Backend.CallbackSerialShell{
 
         private List<SerialDriverConnection> ListOfDevices;
         private uint? connection_index;
+        public NLog.Logger? Logger = null;
 
         public HostappBackendSerial(){
             this.ListOfDevices = new List<SerialDriverConnection>();
@@ -29,12 +30,16 @@ namespace DriverHostapp.Backend.CallbackSerialShell{
             foreach(string port in ports){ 
                 try{
                     this.ListOfDevices.Add(this.get_serial_device_info(port));
-                } catch (WrongDevice){
-                } catch (System.UnauthorizedAccessException){
+                } catch (WrongDevice ex){
+                    Logger?.Info($"Device {port} rejected - {ex.Message}");
+                } catch (System.UnauthorizedAccessException ex){
+                    Logger?.Info($"[System.UnauthorizedAccessException] Device {port} rejected - {ex.Message}");
+                } catch (System.IO.IOException ex){
+                    Logger?.Info($"[System.IO.IOException] Device {port} rejected - {ex.Message}");
+                } catch (Exception ex){
+                    Logger?.Info($"[Exception] Device {port} rejected - {ex.Message}");
                 }
-                
             }
-            
         }
 
         public List<string> get_connections_as_string_list(){
@@ -198,7 +203,7 @@ namespace DriverHostapp.Backend.CallbackSerialShell{
                 throw new DeviceNotChosen("Cannot get speed if no connection was chosen!");
             }
 
-            this.ListOfDevices[(int)this.connection_index].write_data("start --on\n");
+            this.ListOfDevices[(int)this.connection_index].write_data("motor start\n");
             this.get_return_from_device_with_error_check("Operation executed!");
         }
 
@@ -207,7 +212,7 @@ namespace DriverHostapp.Backend.CallbackSerialShell{
                 throw new DeviceNotChosen("Cannot get speed if no connection was chosen!");
             }
 
-            this.ListOfDevices[(int)this.connection_index].write_data("start --off\n");
+            this.ListOfDevices[(int)this.connection_index].write_data("motor stop\n");
             this.get_return_from_device_with_error_check("Operation executed!");
         }
         
@@ -216,7 +221,7 @@ namespace DriverHostapp.Backend.CallbackSerialShell{
                 throw new DeviceNotChosen("Cannot get speed if no connection was chosen!");
             }
 
-            this.ListOfDevices[(int)this.connection_index].write_data("start --get\n");
+            this.ListOfDevices[(int)this.connection_index].write_data("motor\n");
 
             List<string> lines = this.ListOfDevices[(int)this.connection_index].read_lines();
             string error_code = "";
@@ -257,6 +262,10 @@ namespace DriverHostapp.Backend.CallbackSerialShell{
             }
 
             throw new ErrorFromDriver(error_code);
+        }
+
+        public void SetLogger(NLog.Logger? Logger){
+            this.Logger = Logger;
         }
     }
 }

@@ -10,6 +10,8 @@ using DriverHostapp.Backend.Utils.ControlModes;
 namespace DriverHostapp.Backend.CallbackBT{
     public class HostappBackendBluetooth : IHostappBackend{
 
+        public NLog.Logger? Logger = null;
+
         public void list_devices(){
         }
 
@@ -64,6 +66,10 @@ namespace DriverHostapp.Backend.CallbackBT{
 
         public void close_connection(){
 
+        }
+
+        public void SetLogger(NLog.Logger? Logger){
+            this.Logger = Logger;
         }
     }
 }

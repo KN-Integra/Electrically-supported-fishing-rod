@@ -48,6 +48,10 @@ namespace DriverHostapp.Frontend.HostappMainWindow{
 
         public void EnableLogging(){
             Logger = NLog.LogManager.GetCurrentClassLogger();
+            if(this.TechnologyIndex is not null){
+                this.BackendImplementations[(int)this.TechnologyIndex].SetLogger(this.Logger);
+            }
+
             Logger.Info("Logger Starting!");
         }
 
@@ -76,6 +80,10 @@ namespace DriverHostapp.Frontend.HostappMainWindow{
             } 
             else {
                 TechnologyIndex = null;
+            }
+
+            if(this.TechnologyIndex is not null){
+                this.BackendImplementations[(int)this.TechnologyIndex].SetLogger(this.Logger);
             }
 
             Button? button = this.Find<Button>("ScanDevicesButton");
@@ -128,8 +136,7 @@ namespace DriverHostapp.Frontend.HostappMainWindow{
                             comboBox.Items.Add(s);
                         }
                     } catch(Exception ex){
-                        this.openMessageWindow(ex.Message);
-                        return;
+                        Logger?.Info($"Selected Technology {ex.Message}");
                     }
                 }
                 comboBox.SelectedIndex = 0;
