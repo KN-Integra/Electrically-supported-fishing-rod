@@ -1,0 +1,95 @@
+name: Compliance
+
+on: pull_request
+
+jobs:
+  compliance_job:
+    runs-on: ubuntu-latest
+    name: Run compliance checks on patch series (PR)
+    steps:
+    - name: Update PATH for west
+      run: |
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+    - name: Checkout the code
+      uses: actions/checkout@v3
+      with:
+        path: Electrically-supported-fishing-rod
+        ref: ${{ github.event.pull_request.head.sha }}
+        fetch-depth: 0
+
+    - name: cache-pip
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-doc-pip
+
+    - name: Install python dependencies
+      working-directory: Electrically-supported-fishing-rod
+      run: |
+        pip3 install -U pip
+        pip3 install -U setuptools
+        pip3 install -U wheel
+        pip3 install -U west
+        pip3 install -U -r .github/workflows/requirements-ci.txt
+        pip3 show -f west
+
+    - name: West init and update
+      env:
+        BASE_REF: ${{ github.base_ref }}
+      working-directory: Electrically-supported-fishing-rod
+      run: |
+        git config --global user.email "you@example.com"
+        git config --global user.name "Your Name"
+        git remote -v
+        # Ensure there's no merge commits in the PR
+        [[ "$(git rev-list --merges --count origin/${BASE_REF}..)" == "0" ]] || \
+        (echo "::error ::Merge commits not allowed, rebase instead";false)
+
+        git rebase origin/${BASE_REF}
+        # debug
+        git log  --pretty=oneline | head -n 10
+        west init
+        # west update
+        west zephyr-export
+
+    - name: Run Compliance Tests
+      continue-on-error: true
+      id: compliance
+      env:
+        BASE_REF: ${{ github.base_ref }}
+      working-directory: Electrically-supported-fishing-rod
+      run: |
+        echo $(dirname "$(pwd)")
+        export ZEPHYR_BASE="$(pwd)/zephyr"
+        echo $ZEPHYR_BASE
+        # debug
+        pwd
+        ls -la
+        git log --pretty=oneline | head -n 10
+        # For now we run KconfigBasic, but we should transition to Kconfig
+        $ZEPHYR_BASE/scripts/ci/check_compliance.py --annotate -e Kconfig \
+        -e Identity -e Gitlint -c origin/${BASE_REF}..
+
+
+    - name: check-warns
+      working-directory: Electrically-supported-fishing-rod
+      run: |
+        export ZEPHYR_BASE="$(pwd)/zephyr"
+
+        files=($($ZEPHYR_BASE/scripts/ci/check_compliance.py -l))
+        for file in "${files[@]}"; do
+          f="${file}.txt"
+          if [[ -s $f ]]; then
+            errors=$(cat $f)
+            errors="${errors//'%'/'%25'}"
+            errors="${errors//$'\n'/'%0A'}"
+            errors="${errors//$'\r'/'%0D'}"
+            echo "::error file=${f}::$errors"
+            exit=1
+          fi
+        done
+
+        if [ "${exit}" == "1" ]; then
+          exit 1;
+        fi
