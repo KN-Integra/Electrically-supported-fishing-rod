@@ -5,6 +5,9 @@
 
 #include <zephyr/kernel.h>
 
+#define MIN_TO_MS 60000
+#define RPM_TO_MRPM 1000
+
 /// @brief Error code definitions for motor driver
 enum error_codes {
 	SUCCESS = 0,
