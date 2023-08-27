@@ -28,5 +28,7 @@ namespace DriverHostapp.Backend.CallbackInterface{
         bool get_off_on();
 
         void close_connection();
+
+        void SetLogger(NLog.Logger? Logger);
     }
 }
