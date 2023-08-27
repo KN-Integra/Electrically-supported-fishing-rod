@@ -1,3 +1,8 @@
+# SPDX-License-Identifier: Apache-2.0
+#
+# Copyright (c) 2023 Sebastian Soczawa
+#
+
 import asyncio
 import os
 from bleak import BleakScanner, BleakClient, BLEDevice, BleakGATTCharacteristic
@@ -26,6 +31,12 @@ class BluetoothDesktopClient():
         except FileNotFoundError:
             print("cannot locate help.txt")
 
+    def check_connection(self):
+        if self.wyndka_client:
+            return self.wyndka_client.is_connected
+        else:
+            return False
+
     async def cmd_scan(self) -> None:
         print("Scanning for devices...")
         devices = await self.scanner.discover(timeout=5, return_adv=False)
@@ -36,7 +47,7 @@ class BluetoothDesktopClient():
         self.wyndka = await self.scanner.find_device_by_name("Wyndka", 5)
         if self.wyndka:
             await self.cmd_connect(self.wyndka.address)
-            print("connection state:",self.wyndka_client.is_connected)
+            print("connection state:",self.check_connection())
         else:
             print("Failed to find Wyndka, make sure that the device is powered on\n\
                   If it is, then try to run scan, and connect using the proper mac address")
@@ -44,7 +55,7 @@ class BluetoothDesktopClient():
     async def cmd_connect(self, addr: str) -> bool:
         print("connecting...")
         self.wyndka_client = BleakClient(addr)
-        if self.wyndka_client and self.wyndka_client.is_connected:
+        if self.check_connection():
             print("device already connected, disconnect first")
             return True
         try:
@@ -95,11 +106,14 @@ class BluetoothDesktopClient():
             cmd = CMD_BOOT_BYTES
             await self.wyndka_client.write_gatt_char(WRITE_CHARACTRERISTIC_UUID, cmd)
         except Exception as e:
-            print(e)
+            # ignore error as connection will be broken after switching to bootloader
+            pass
+        self.wyndka_client = None
 
     async def cmd_disconnect(self):
         print("disconnecting...")
         await self.wyndka_client.disconnect()
+        self.wyndka_client = None
         print("disconnected")
 
     async def start_repl(self):
@@ -113,40 +127,54 @@ class BluetoothDesktopClient():
                     cmd = _in.split(' ')
                     if cmd[0] == "scan":
                         await self.cmd_scan()
+
                     elif cmd[0] == "connect":
                         if cmd[1] == "auto":
+
                             await self.autoconnect()
                         elif cmd[1] == "check":
-                            print(self.wyndka_client.is_connected if self.wyndka_client else False)
+
+                            print(self.check_connection())
                         else:
                             await self.cmd_connect(cmd[1])
+
                     elif cmd[0] == "help":
                         self.cmd_help()
-                    elif cmd[0] == "init" and self.wyndka_client.is_connected:
-                        await self.cmd_init()
-                    elif cmd[0] == "speed" and self.wyndka_client.is_connected:
-                        if cmd[1] == "get":
-                            await self.cmd_speed_get()
-                        elif cmd[1] == "set":
-                            await self.cmd_speed_set(int(cmd[2]))
-                    elif cmd[0] == "boot" and self.wyndka_client.is_connected:
-                        await self.cmd_boot()
-                    elif cmd[0] == "driver" and self.wyndka_client.is_connected:
-                        await self.cmd_driver()
-                    elif cmd[0] == "disconnect":
-                        await self.cmd_disconnect()
+
                     elif cmd[0] == "exit":
-                        print("Closing repl.")
-                        if self.wyndka_client and self.wyndka_client.is_connected:
+                            print("Closing repl.")
+                            if self.check_connection():
+                                await self.cmd_disconnect()
+                            return
+
+                    elif self.check_connection():
+                        if cmd[0] == "init":
+                            await self.cmd_init()
+
+                        elif cmd[0] == "speed":
+                            if cmd[1] == "get":
+                                await self.cmd_speed_get()
+
+                            elif cmd[1] == "set":
+                                await self.cmd_speed_set(int(cmd[2]))
+
+                        elif cmd[0] == "boot":
+                            await self.cmd_boot()
+
+                        elif cmd[0] == "driver":
+                            await self.cmd_driver()
+
+                        elif cmd[0] == "disconnect":
                             await self.cmd_disconnect()
-                        return
+                        
                     else:
-                        print("Invalid command please type: 'help' for help")
+                        print("Invalid command or state. Please type: 'help' for help")
                 except Exception as e:
                     print(f"Error during input: {e}")
+
         except  KeyboardInterrupt as e:
             print("\nClosing repl.")
-            if self.wyndka_client and self.wyndka_client.is_connected:
+            if self.check_connection():
                 await self.cmd_disconnect()
             return
 
