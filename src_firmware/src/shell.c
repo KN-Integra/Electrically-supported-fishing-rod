@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright (c) 2023 Maciej Baczmanski, Michal Kawiak, Jakub Mazur
+
 #include <zephyr/kernel.h>
 #include <zephyr/shell/shell.h>
 #include <stdlib.h>

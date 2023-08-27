@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright (c) 2023 Maciej Baczmanski, Michal Kawiak, Jakub Mazur
+
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/gpio.h>
 
