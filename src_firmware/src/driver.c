@@ -63,7 +63,8 @@ void update_speed_continuus(struct k_work *work)
 	}
 	old_count_cycles = count_cycles;
 
-	actual_mrpm = (diff*25)/4; //(diff*60)/(64*150) * 1000;
+	actual_mrpm = RPM_TO_MRPM * MIN_TO_MS * diff /
+		(CONFIG_ENC_TIMER_PERIOD_MS * CONFIG_GEARSHIFT_RATIO * CONFIG_ENC_TIMER_PERIOD_MS);
 	int32_t speed_delta = target_speed_mrpm - actual_mrpm;
 
 	if (get_motor_off_on()) {
@@ -144,7 +145,7 @@ int init_pwm_motor_driver(uint32_t speed_max_mrpm)
 		// TODO - ret error checking!!
 	}
 
-	k_timer_start(&my_timer, K_MSEC(1000), K_MSEC(1000));
+	k_timer_start(&my_timer, K_MSEC(CONFIG_ENC_TIMER_PERIOD_MS), K_MSEC(CONFIG_ENC_TIMER_PERIOD_MS));
 
 	off_on_button_init();
 
@@ -201,42 +202,59 @@ int speed_get(uint32_t *value)
 
 int motor_on(enum MotorDirection direction)
 {
-	if (drv_initialised) {
-		int ret;
+	int ret;
 
-		count_cycles = 0;
-		old_count_cycles = 0;
-		if (direction == BACKWARD) {
-			ret = gpio_pin_set_dt(&set_dir_p1, 1);
-			if (ret != 0) {
-				return UNABLE_TO_SET_GPIO;
-			}
-			ret = gpio_pin_set_dt(&set_dir_p2, 0);
-			if (ret != 0) {
-				return UNABLE_TO_SET_GPIO;
-			}
-		} else if (direction == FORWARD) {
-			ret = gpio_pin_set_dt(&set_dir_p1, 0);
-			if (ret != 0) {
-				return UNABLE_TO_SET_GPIO;
-			}
-			ret = gpio_pin_set_dt(&set_dir_p2, 1);
-			if (ret != 0) {
-				return UNABLE_TO_SET_GPIO;
-			}
-		}
+	if (!drv_initialised) {
+		return NOT_INITIALISED;
+	}
 
-		is_motor_on = true;
+	if (is_motor_on) {
+		// Motor is already on, no need for starting it again
 		return SUCCESS;
 	}
 
-	return NOT_INITIALISED;
+	speed_control = 0;
+	count_cycles = 0;
+	old_count_cycles = 0;
+	if (direction == BACKWARD) {
+		ret = gpio_pin_set_dt(&set_dir_p1, 1);
+		if (ret != 0) {
+			return UNABLE_TO_SET_GPIO;
+		}
+		ret = gpio_pin_set_dt(&set_dir_p2, 0);
+		if (ret != 0) {
+			return UNABLE_TO_SET_GPIO;
+		}
+	} else if (direction == FORWARD) {
+		ret = gpio_pin_set_dt(&set_dir_p1, 0);
+		if (ret != 0) {
+			return UNABLE_TO_SET_GPIO;
+		}
+		ret = gpio_pin_set_dt(&set_dir_p2, 1);
+		if (ret != 0) {
+			return UNABLE_TO_SET_GPIO;
+		}
+	}
+
+	is_motor_on = true;
+	return SUCCESS;
 }
 
 int motor_off(void)
 {
+	int ret;
+
+	if (!drv_initialised) {
+		return NOT_INITIALISED;
+	}
+
+	if (!is_motor_on) {
+		// Motor is already off, no need for stopping it again
+		return SUCCESS;
+	}
+
 	if (drv_initialised) {
-		int ret = gpio_pin_set_dt(&set_dir_p1, 0);
+		ret = gpio_pin_set_dt(&set_dir_p1, 0);
 
 		if (ret != 0) {
 			return UNABLE_TO_SET_GPIO;
