@@ -57,11 +57,6 @@ int init_pwm_motor_driver(uint32_t speed_max_mrpm);
 /// @return error defined in error_codes
 int target_speed_set(uint32_t value);
 
-/// @brief Only update the pwm to correspond to the value speed
-/// @param value - value in mili RPM
-/// @return error defined in error_codes
-int speed_pwm_set(uint32_t value);
-
 /// @brief Get current actual speed (from encoders)  - TODO - implement with encoders
 /// @param value - variable to save speed
 /// @return error defined in error_codes

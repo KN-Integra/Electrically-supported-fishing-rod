@@ -49,6 +49,34 @@ static const struct gpio_dt_spec out_boot = GPIO_DT_SPEC_GET(DT_ALIAS(enter_boot
 
 static int32_t ret_debug = 100;// DEBUG ONLY
 
+static int speed_pwm_set(uint32_t value)
+{
+	int ret;
+
+	if (!drv_initialised) {
+		return NOT_INITIALISED;
+	}
+
+	if (value > max_mrpm) {
+		return DESIRED_SPEED_TO_HIGH;
+	}
+
+	if (target_speed_mrpm < max_mrpm/10) {
+		value = 0;
+		speed_control = 0;
+	}
+
+	uint64_t w_1 = pwm_motor_driver.period * (uint64_t)value;
+	uint32_t w = value != 0 ? (uint32_t)(w_1/max_mrpm) : 0;
+
+	ret = pwm_set_pulse_dt(&pwm_motor_driver, w);
+	if (ret != 0) {
+		return UNABLE_TO_SET_PWM_CHNL1;
+	}
+
+	return SUCCESS;
+}
+
 
 void update_speed_continuus(struct k_work *work)
 {
@@ -156,34 +184,6 @@ int target_speed_set(uint32_t value)
 	target_speed_mrpm = value;
 	count_cycles = 0;
 	old_count_cycles = 0;
-	return SUCCESS;
-}
-
-int speed_pwm_set(uint32_t value)
-{
-	int ret;
-
-	if (!drv_initialised) {
-		return NOT_INITIALISED;
-	}
-
-	if (value > max_mrpm) {
-		return DESIRED_SPEED_TO_HIGH;
-	}
-
-	if (target_speed_mrpm < max_mrpm/10) {
-		value = 0;
-		speed_control = 0;
-	}
-
-	uint64_t w_1 = pwm_motor_driver.period * (uint64_t)value;
-	uint32_t w = value != 0 ? (uint32_t)(w_1/max_mrpm) : 0;
-
-	ret = pwm_set_pulse_dt(&pwm_motor_driver, w);
-	if (ret != 0) {
-		return UNABLE_TO_SET_PWM_CHNL1;
-	}
-
 	return SUCCESS;
 }
 
