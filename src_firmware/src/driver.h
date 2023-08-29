@@ -35,12 +35,13 @@ enum error_codes {
 	UNABLE_TO_SET_GPIO = 16
 };
 
+/// @brief motor direction definitions
 enum MotorDirection {
 	FORWARD,
 	BACKWARD
-
 };
 
+/// @brief struct representing current software version
 struct DriverVersion {
 	uint8_t major;
 	uint8_t minor;
@@ -66,26 +67,37 @@ int speed_pwm_set(uint32_t value);
 /// @return error defined in error_codes
 int speed_get(uint32_t *value);
 
+/// @brief Turn motor on in proper direction, without modyfing target speed or set pwm output.
+/// @param direction - FORWARD or BACKWARD
+/// @return error defined in error_codes
 int motor_on(enum MotorDirection direction);
 
+/// @brief Turn motor off, without modyfing pwm output
+/// @return error defined in error_codes
 int motor_off(void);
+
+/// @brief Simple getter for max speed (set by init_pwm_motor_driver)
+/// @return max speed in mili RPM
+uint32_t get_current_max_speed(void);
+
+/// @brief Simple getter for current motor state (off or on)
+/// @return true - motor is on; false - motor is off
+bool get_motor_off_on(void);
+
+/// @brief Simple getter for firmware software version
+/// @return DriverVersion struct of major and minor version
+struct DriverVersion get_driver_version(void);
+
+/// @brief Simple getter for target speed set with target_speed_set function
+/// @return uint32_t representing target speed.
+uint32_t speed_target_get(void);
 
 #if defined(CONFIG_BOARD_NRF52840DONGLE_NRF52840)
 /// @brief Enter bootloader mode (in order to flash new software via nRF connect programmer)
 void enter_boot(void);
 #endif
 
-/// @brief Simple getter for max speed (set by init_pwm_motor_driver)
-/// @return max speed in mili RPM
-uint32_t get_current_max_speed(void);
-
-bool get_motor_off_on(void);
-
 uint64_t get_cycles_count_DEBUG(void);
 uint64_t get_time_cycles_count_DEBUG(void);
 int32_t get_ret_DEBUG(void);
 uint32_t get_calc_speed_DEBUG(void);
-
-struct DriverVersion get_driver_version(void);
-
-uint32_t speed_target_get(void);

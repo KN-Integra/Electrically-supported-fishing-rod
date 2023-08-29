@@ -13,42 +13,39 @@ struct DriverVersion driver_ver = {
 	.minor = 1,
 };
 
+/// SPEED control
 static uint32_t target_speed_mrpm;// Target set by user
 static uint32_t actual_mrpm; // actual speed calculated from encoder pins
-
 static uint32_t max_mrpm;// max rpm set by user in init (read from documentation)
+static uint32_t speed_control; // PID output -> pwm calculations input
 
-static uint32_t speed_control; // temporary speed used for PID calculations
 
-
-/// variables used for actual speed calculation based on encoder pin and timer interrupts
+/// ENCODER - variables used for actual speed calculation based on encoder pin and timer interrupts
 static uint64_t count_cycles;
 static uint64_t old_count_cycles;
 static uint64_t count_timer;
 struct k_timer my_timer;
-///
 
+/// BOOLS - drv init and on?
 static bool drv_initialised; // was init command sent?
-
 static bool is_motor_on; // was motor_on function called?
 
 
+/// PINS definitions
+/// motor out
 static const struct pwm_dt_spec pwm_motor_driver = PWM_DT_SPEC_GET(DT_ALIAS(pwm_drv_ch1));
-
 static const struct gpio_dt_spec set_dir_p1 = GPIO_DT_SPEC_GET(DT_ALIAS(set_dir_p1_ch1), gpios);
 static const struct gpio_dt_spec set_dir_p2 = GPIO_DT_SPEC_GET(DT_ALIAS(set_dir_p2_ch1), gpios);
+
+/// enc in
+static const struct gpio_dt_spec enc_p1_ch1 = GPIO_DT_SPEC_GET(DT_ALIAS(get_enc_p1_ch1), gpios);
+static const struct gpio_dt_spec enc_p2_ch1 = GPIO_DT_SPEC_GET(DT_ALIAS(get_enc_p2_ch1), gpios);
+static const struct gpio_dt_spec enc_ch1_pins[2] = {enc_p1_ch1, enc_p2_ch1};
+static struct gpio_callback enc_ch1_cb[2];
 
 #if defined(CONFIG_BOARD_NRF52840DONGLE_NRF52840)
 static const struct gpio_dt_spec out_boot = GPIO_DT_SPEC_GET(DT_ALIAS(enter_boot_p), gpios);
 #endif
-
-static const struct gpio_dt_spec enc_p1_ch1 = GPIO_DT_SPEC_GET(DT_ALIAS(get_enc_p1_ch1), gpios);
-static const struct gpio_dt_spec enc_p2_ch1 = GPIO_DT_SPEC_GET(DT_ALIAS(get_enc_p2_ch1), gpios);
-
-static const struct gpio_dt_spec enc_ch1_pins[2] = {enc_p1_ch1, enc_p2_ch1};
-
-static struct gpio_callback enc_ch1_cb[2];
-
 
 static int32_t ret_debug = 100;// DEBUG ONLY
 
