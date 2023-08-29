@@ -9,8 +9,8 @@
 
 
 struct DriverVersion driver_ver = {
-	.major = 0,
-	.minor = 1,
+	.major = 1,
+	.minor = 0,
 };
 
 /// SPEED control
