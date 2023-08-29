@@ -4,30 +4,30 @@ using DriverHostapp.Backend.Utils.ControlModes;
 
 namespace DriverHostapp.Backend.CallbackInterface{
     public interface IHostappBackend{
-        void list_devices();
+        void ListDevices();
 
-        List<string> get_connections_as_string_list();
-        void choose_connection_by_index(uint index);
+        List<string> GetConnectionsAsListOfStrings();
+        void ChooseConnectionByIndex(uint index);
 
-        void open_connection();
+        void OpenConnection();
 
-        void send_configuration();
+        void SendConfiguration();
 
-        void set_mode(ControlMode new_mode);
-        ControlMode get_mode();
+        void SetMode(ControlMode new_mode);
+        ControlMode GetMode();
 
-        void set_speed(uint target_speed_in_mrpm);
-        uint get_speed();
+        void SetSpeed(uint target_speed_in_mrpm);
+        uint GetSpeed();
 
-        void set_position();
-        uint get_position();
+        void SetPosition();
+        uint GetPosition();
 
-        void turn_driver_on();
-        void turn_driver_off();
+        void TurnDriverOn();
+        void TurnDriverOff();
 
-        bool get_off_on();
+        bool GetOffOnState();
 
-        void close_connection();
+        void CloseConnection();
 
         void SetLogger(NLog.Logger? Logger);
     }
