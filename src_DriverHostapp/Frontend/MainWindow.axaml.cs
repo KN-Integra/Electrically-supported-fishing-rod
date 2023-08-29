@@ -65,7 +65,7 @@ namespace DriverHostapp.Frontend.HostappMainWindow{
 
             if(this.TechnologyIndex is not null){
                 try{
-                    this.BackendImplementations[(int)this.TechnologyIndex].close_connection();
+                    this.BackendImplementations[(int)this.TechnologyIndex].CloseConnection();
                 } catch(DeviceNotConnected){
                     //TODO logging
                 } catch(Exception){
@@ -130,8 +130,8 @@ namespace DriverHostapp.Frontend.HostappMainWindow{
                 comboBox.Items.Add("Select Device");
                 if(this.TechnologyIndex is not null){
                     try{
-                        this.BackendImplementations[(int)this.TechnologyIndex].list_devices();
-                        List<string> connected_device_list = this.BackendImplementations[(int)this.TechnologyIndex].get_connections_as_string_list();
+                        this.BackendImplementations[(int)this.TechnologyIndex].ListDevices();
+                        List<string> connected_device_list = this.BackendImplementations[(int)this.TechnologyIndex].GetConnectionsAsListOfStrings();
                         foreach(string s in connected_device_list){
                             comboBox.Items.Add(s);
                         }
@@ -156,7 +156,7 @@ namespace DriverHostapp.Frontend.HostappMainWindow{
             if(this.TechnologyIndex is not null){
                 if(comboBox.SelectedIndex > 0){
                     try{
-                        this.BackendImplementations[(int)this.TechnologyIndex].choose_connection_by_index((uint)comboBox.SelectedIndex-1);
+                        this.BackendImplementations[(int)this.TechnologyIndex].ChooseConnectionByIndex((uint)comboBox.SelectedIndex-1);
                     } catch(Exception ex){
                         this.openMessageWindow(ex.Message);
                         return;
@@ -166,7 +166,7 @@ namespace DriverHostapp.Frontend.HostappMainWindow{
 
             if(comboBox.SelectedIndex == 0 && this.TechnologyIndex is not null){
                 try{
-                    this.BackendImplementations[(int)this.TechnologyIndex].close_connection();
+                    this.BackendImplementations[(int)this.TechnologyIndex].CloseConnection();
                 } catch(Exception) {
 
                 }
@@ -193,7 +193,7 @@ namespace DriverHostapp.Frontend.HostappMainWindow{
 
             if(this.TechnologyIndex is not null){
                 try{
-                    this.BackendImplementations[(int)this.TechnologyIndex].open_connection();
+                    this.BackendImplementations[(int)this.TechnologyIndex].OpenConnection();
                 } catch(Exception ex){
                     this.openMessageWindow(ex.Message);
                     return;
@@ -212,9 +212,9 @@ namespace DriverHostapp.Frontend.HostappMainWindow{
                 uint default_speed = 0;
                 uint default_position = 0;
                 try{
-                    this.BackendImplementations[(int)this.TechnologyIndex].send_configuration();
-                    default_speed = this.BackendImplementations[(int)this.TechnologyIndex].get_speed();
-                    default_position = this.BackendImplementations[(int)this.TechnologyIndex].get_position();
+                    this.BackendImplementations[(int)this.TechnologyIndex].SendConfiguration();
+                    default_speed = this.BackendImplementations[(int)this.TechnologyIndex].GetSpeed();
+                    default_position = this.BackendImplementations[(int)this.TechnologyIndex].GetPosition();
                 }  catch(Exception ex){
                     this.openMessageWindow(ex.Message);
                     return;
@@ -270,7 +270,7 @@ namespace DriverHostapp.Frontend.HostappMainWindow{
                 if(this.TechnologyIndex is not null){
                     ControlMode recievedControlMode = ControlMode.Speed;
                     try{
-                        recievedControlMode = this.BackendImplementations[(int)this.TechnologyIndex].get_mode();
+                        recievedControlMode = this.BackendImplementations[(int)this.TechnologyIndex].GetMode();
                     } catch(Exception ex){
                         this.openMessageWindow(ex.Message);
                         return;
@@ -303,8 +303,8 @@ namespace DriverHostapp.Frontend.HostappMainWindow{
                 if(this.TechnologyIndex is not null){
                     ControlMode value_returned = ControlMode.Speed;
                     try{
-                        this.BackendImplementations[(int)this.TechnologyIndex].set_mode(value_to_set);
-                        value_returned = this.BackendImplementations[(int)this.TechnologyIndex].get_mode();
+                        this.BackendImplementations[(int)this.TechnologyIndex].SetMode(value_to_set);
+                        value_returned = this.BackendImplementations[(int)this.TechnologyIndex].GetMode();
                     } catch(Exception ex){
                         this.openMessageWindow(ex.Message);
                         return;
@@ -325,7 +325,7 @@ namespace DriverHostapp.Frontend.HostappMainWindow{
                 uint default_speed = 0;
 
                 try{
-                    default_speed = this.BackendImplementations[(int)this.TechnologyIndex].get_speed();
+                    default_speed = this.BackendImplementations[(int)this.TechnologyIndex].GetSpeed();
                 } catch(Exception ex){
                     this.openMessageWindow(ex.Message);
                     return;
@@ -350,7 +350,7 @@ namespace DriverHostapp.Frontend.HostappMainWindow{
 
             if(this.TechnologyIndex is not null){
                 try{
-                    this.BackendImplementations[(int)this.TechnologyIndex].set_speed(speed_to_set);
+                    this.BackendImplementations[(int)this.TechnologyIndex].SetSpeed(speed_to_set);
                 } catch(Exception ex){
                     this.openMessageWindow(ex.Message);
                     return;
@@ -360,7 +360,7 @@ namespace DriverHostapp.Frontend.HostappMainWindow{
 
         public void GetPosition(object sender, RoutedEventArgs args){
             if(this.TechnologyIndex is not null){
-                uint default_position = this.BackendImplementations[(int)this.TechnologyIndex].get_position();
+                uint default_position = this.BackendImplementations[(int)this.TechnologyIndex].GetPosition();
 
                 TextBox? get_pos_textbox = this.Find<TextBox>("GetPosText");
                 if(get_pos_textbox is not null){
@@ -376,11 +376,11 @@ namespace DriverHostapp.Frontend.HostappMainWindow{
         public void OffOnDevice(object sender, RoutedEventArgs args){
             if(this.TechnologyIndex is not null){
                 try{
-                    bool default_off_on_state = this.BackendImplementations[(int)this.TechnologyIndex].get_off_on();
+                    bool default_off_on_state = this.BackendImplementations[(int)this.TechnologyIndex].GetOffOnState();
                     if(default_off_on_state){
-                        this.BackendImplementations[(int)this.TechnologyIndex].turn_driver_off();
+                        this.BackendImplementations[(int)this.TechnologyIndex].TurnDriverOff();
                     } else {
-                        this.BackendImplementations[(int)this.TechnologyIndex].turn_driver_on();
+                        this.BackendImplementations[(int)this.TechnologyIndex].TurnDriverOn();
                     }
                 } catch(Exception ex){
                     this.openMessageWindow(ex.Message);
@@ -402,7 +402,7 @@ namespace DriverHostapp.Frontend.HostappMainWindow{
             if(this.TechnologyIndex is not null && get_on_off_state is not null && turn_off_on_button is not null){
                 bool default_off_on_state = false;
                 try{
-                    default_off_on_state = this.BackendImplementations[(int)this.TechnologyIndex].get_off_on();
+                    default_off_on_state = this.BackendImplementations[(int)this.TechnologyIndex].GetOffOnState();
                 } catch(Exception ex){
                     this.openMessageWindow(ex.Message);
                     return;

@@ -12,59 +12,59 @@ namespace DriverHostapp.Backend.CallbackBT{
 
         public NLog.Logger? Logger = null;
 
-        public void list_devices(){
+        public void ListDevices(){
         }
 
-        public List<string> get_connections_as_string_list(){
+        public List<string> GetConnectionsAsListOfStrings(){
             return new List<string>();
         }
 
-        public void choose_connection_by_index(uint index){
+        public void ChooseConnectionByIndex(uint index){
 
         }
 
-        public void open_connection(){
+        public void OpenConnection(){
 
         }
 
-        public void send_configuration(){
+        public void SendConfiguration(){
 
         }
 
-        public void set_mode(ControlMode new_mode){
+        public void SetMode(ControlMode new_mode){
 
         }
-        public ControlMode get_mode(){
+        public ControlMode GetMode(){
             return ControlMode.Speed;
         }
 
-        public void set_speed(uint target_speed_in_mrpm){
+        public void SetSpeed(uint target_speed_in_mrpm){
 
         }
-        public uint get_speed(){
+        public uint GetSpeed(){
             return 0u;
         }
 
-        public void set_position(){
+        public void SetPosition(){
 
         }
-        public uint get_position(){
+        public uint GetPosition(){
             return 0u;
         }
 
-        public void turn_driver_on(){
+        public void TurnDriverOn(){
 
         }
 
-        public void turn_driver_off(){
+        public void TurnDriverOff(){
 
         }
 
-        public bool get_off_on(){
+        public bool GetOffOnState(){
             return false;
         }
 
-        public void close_connection(){
+        public void CloseConnection(){
 
         }
 
