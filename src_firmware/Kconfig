@@ -9,20 +9,14 @@ endmenu
 
 menu "Wyndka configuration"
 config GEARSHIFT_RATIO
-        int
-        default 150
-        help
-                Gearshift ratio of attached motor
+	int "Gearshift ratio of attached motor"
+	default 150
 
 config ENC_STEPS_PER_ROTATION
-        int
-        default 64
-        help
-                Number of encoder steps per one full rotation
+	int "Number of encoder steps per one full rotation"
+	default 64
 
 config ENC_TIMER_PERIOD_MS
-        int
-        default 100
-        help
-                Sampling period for continuus speed calculation
+	int "Sampling period for continuus speed calculation"
+	default 100
 endmenu
