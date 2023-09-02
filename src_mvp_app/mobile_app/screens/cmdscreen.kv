@@ -1,0 +1,92 @@
+#:kivy 2.2.0
+
+<CmdScreen>:
+    canvas.before:
+        Color:
+            rgba: (0.16,0.22,0.28,1)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    BoxLayout:
+        width: root.width
+        height: root.height
+        orientation: 'vertical'
+        spacing: 20
+        padding: 20
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint: [1, 0.1]
+            Image:
+                source: 'media/integra-icon.png'
+                # size: self.texture_size
+                fit_mode: "contain"
+            Image:
+                source: 'media/nordic_logo.png'
+                fit_mode: "contain"
+
+        ScrollView:
+            id: templates_view
+            size_hint: [1, 0.5]
+            GridLayout:
+                id: templates_grid
+                cols: 2
+                size_hint_y: None
+                orientation: 'lr-tb'
+                spacing: 15
+
+        RoundedButton:
+            id: speed_label
+            text: "current speed: "
+            on_release: root.speed_get()
+            size_hint: [1, 0.1]
+            canvas.before:
+                Color:
+                    rgba: (0.517, 0.41, 0.33, 1)
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [20,]
+
+        BoxLayout:
+            orientation: 'horizontal'
+            id: new_template
+            size_hint: [1, 0.1]
+            spacing: 10
+            canvas.before:
+                Color:
+                    rgba: (0.517, 0.41, 0.33, 1)
+            RoundedInput:
+                id: new_template_name
+                hint_text: "enter name"
+                input_type: "text"
+            RoundedInput:
+                id: new_template_speed
+                hint_text: "31999"
+                input_type: "number"
+            RoundedButton:
+                text: "add"
+                on_release: root.template_add()
+
+        RoundedButton:
+            text: "enter bootloader"
+            on_release: root.enter_bootloader()
+            size_hint: [1, 0.1]
+            canvas.before:
+                Color:
+                    rgba: (0.8, 0.4, 0, 1) if self.state=='normal' else (1, 0.5, 0.1, 0.7)
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [30,]
+
+        RoundedButton:
+            text: "disconnect"
+            on_release: root.disconnect()
+            size_hint: [1, 0.1]
+            canvas.before:
+                Color:
+                    rgba: (0.7, 0.2, 0.1, 1) if self.state=='normal' else (0.9, 0.2, 0.1, 0.7)
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [30,]

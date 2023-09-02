@@ -1,0 +1,42 @@
+#:kivy  3.0.0
+
+#:import MDIconButton kivymd.uix.button.MDIconButton 
+<TemplateButton@FloatLayout>:
+    font_size: '10dp'
+    size_hint: [0.5, None]
+    height: 200
+    on_touch_down:
+        if self.collide_point(*args[1].pos): root.dispatch('on_template_touch', root.id)
+
+    canvas.before:
+        Color:
+            rgba: (1, 1, 1, 0.8)
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [20,]
+        Color:
+            rgba: (0.3, 0.3, 0.3, 1)
+    Label:
+        id: templ_name
+        text: "test"
+        color: 0, 0, 0, 1
+        font_size: self.parent.height / 5
+        size_hint: [0.5, 0.5]
+        pos_hint: {"center_x": 0.5, "center_y": 0.5}
+    Label:
+        id: templ_speed
+        text: "test speed"
+        color: 0.3, 0.3, 0.3, 1
+        size_hint: [0.2, 0.2]
+        pos_hint: {"center_y": 0.2, "center_x": 0.5}
+    MDIconButton:
+        id: btn_del
+        icon: "trash-can-outline"
+        style: "filled"
+        text_color: 1, 0, 0, 1
+        color: 1, 0, 0, 1
+        pos_hint: {"center_x": 0.8, "center_y": 0.8}
+        # on_press: root.template_delete()
+        on_touch_down:
+            if self.collide_point(*args[1].pos): root.dispatch('on_button_touch', root.id)

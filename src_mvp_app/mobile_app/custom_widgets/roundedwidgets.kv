@@ -1,0 +1,51 @@
+#:kivy 2.2.0
+<RoundedInput@TextInput>:
+    font_size: '20dp'
+    multiline: False
+    size_hint: (1 , 1)
+    hint_text_color: [0.5, 0.5, 0.5, 1]
+    color: [0, 0, 0, 1]
+    background_color: [0, 0, 0, 0]
+    background_image: ""
+    background_normal: ""
+    background_active: ""
+    cursor_color: [0, 0, 0, 1]
+    padding: [self.width/10, (self.height - self.line_height)/2 - 1] 
+    cursor_width: '2dp'
+    canvas.before:
+        Color:
+            rgba: (1, 1, 1, 0.8)
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [20,]
+        Color:
+            rgba: (0.3, 0.3, 0.3, 1)
+
+#:kivy 2.2.0
+<RoundedButton@Button>:
+    font_size: '25dp'
+    bold: True
+    background_color: (0,0,0,0)
+    color: (0,0,0,0.7)
+    canvas.before:
+        Color:
+            rgba: (0.3, 0.5, 0.4, 0.8) if self.state=='normal' else (0.3, 0.5, 0.4, 0.6)
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [30,]
+
+<RoundedLabel@Label>:
+    background_color: (0,0,0,0)
+    color: (0,0,0,0.7)
+    font_size: '20dp'
+    canvas.before:
+        Color:
+            rgba: (0.6, 0.6, 0.6, 1)
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [20,]
+
+
