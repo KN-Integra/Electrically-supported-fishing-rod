@@ -89,7 +89,9 @@ void update_speed_continuus(struct k_work *work)
 	old_count_cycles = count_cycles;
 
 	actual_mrpm = RPM_TO_MRPM * MIN_TO_MS * diff /
-		(CONFIG_ENC_TIMER_PERIOD_MS * CONFIG_GEARSHIFT_RATIO * CONFIG_ENC_TIMER_PERIOD_MS);
+		(CONFIG_ENC_STEPS_PER_ROTATION *
+		 CONFIG_GEARSHIFT_RATIO *
+		 CONFIG_ENC_TIMER_PERIOD_MS);
 	int32_t speed_delta = target_speed_mrpm - actual_mrpm;
 
 	if (get_motor_off_on()) {
