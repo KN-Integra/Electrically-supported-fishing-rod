@@ -1,0 +1,89 @@
+#:kivy 2.2.0
+
+<CmdScreen>:
+    canvas.before:
+        Color:
+            rgba: (0.16,0.22,0.28,1)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    BoxLayout:
+        width: root.width
+        height: root.height
+        orientation: 'vertical'
+        spacing: 20
+        padding: 20
+        BoxLayout:
+            orientation: 'horizontal'
+            Image:
+                source: 'media/integra-icon.png'
+                # size: self.texture_size
+                fit_mode: "contain"
+            Image:
+                source: 'media/nordic_logo.png'
+                fit_mode: "contain"
+        RoundedButton:
+            text: "initialize the device"
+            on_release: root.initialize_device()
+
+        BoxLayout:
+            orientation: 'horizontal'
+            spacing: '15dp'
+            RoundedButton:
+                text: "set speed"
+                on_release: root.speed_set()
+            RoundedInput:
+                id: speed_input
+                hint_text: "0"
+                input_type: "number"
+
+        RoundedButton:
+            id: speed_label
+            text: "current speed: "
+            on_release: root.speed_get()
+            canvas.before:
+                Color:
+                    rgba: (0.517, 0.41, 0.33, 1)
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [20,]
+
+        RoundedButton:
+            id: driver_label
+            text: "Driver version"
+            on_release: root.get_driver_version()
+            canvas.before:
+                Color:
+                    rgba: (0.517, 0.41, 0.33, 1)
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [20,]
+
+        Label:
+            id: cmd_label
+            text: ""
+
+        RoundedButton:
+            text: "enter bootloader"
+            on_release: root.enter_bootloader()
+            canvas.before:
+                Color:
+                    rgba: (0.8, 0.4, 0, 1) if self.state=='normal' else (1, 0.5, 0.1, 0.7)
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [30,]
+
+        RoundedButton:
+            text: "disconnect"
+            on_release: root.disconnect()
+
+            canvas.before:
+                Color:
+                    rgba: (0.7, 0.2, 0.1, 1) if self.state=='normal' else (0.9, 0.2, 0.1, 0.7)
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [30,]

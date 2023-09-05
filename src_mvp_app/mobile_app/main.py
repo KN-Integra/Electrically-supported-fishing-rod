@@ -1,32 +1,47 @@
 import kivy
-kivy.require('2.2.1')
-import os
 import asyncio
 
-from bleak import BleakScanner, BleakClient, BLEDevice
-from repl import BluetoothDesktopClient
+from bluetoothclient import BluetoothClient
 
 from kivy.app import App
+from kivy.app import async_runTouchApp
+from kivy.core.window import Window
+from kivy.core.text import LabelBase
 from kivy.uix.label import Label
+from kivy.uix.widget import Widget
+from kivy.uix.screenmanager import ScreenManager
+from kivy.lang import Builder
+from kivy.logger import Logger
 
-CMD_INIT_BYTES = b'\x00'
-CMD_BOOT_BYTES = b'\x01'
-CMD_SPEED_BYTES = b'\x02'
-CMD_DRIVER_BYTES = b'\x03'
-CMD_DEBUG_BYTES = b'\x04'
-READ_CHARACTERISTIC_UUID = "00002a38-0000-1000-8000-00805f9b34fb"
-WRITE_CHARACTRERISTIC_UUID ="00002a39-0000-1000-8000-00805f9b34fb"
-script_dir = os.path.dirname(os.path.abspath(__file__))
-HELP_PATH = os.path.join(script_dir, 'help.txt')
+from screens.cmd import CmdScreen
+from screens.connect import ConnectScreen
+
+kivy.require('2.2.0')
+
+Builder.load_file('screens/connectscreen.kv')
+Builder.load_file('screens/cmdscreen.kv')
+Builder.load_file('custom_widgets/roundedwidgets.kv')
+
+LabelBase.register(name="lilita-one",
+                   fn_regular="fonts/Lilita_One/LilitaOne-Regular.ttf")
 
 
 class FishingRodApp(App):
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.BLEClient = BluetoothDesktopClient()
+        self.BLEClient = BluetoothClient()
 
     def build(self):
-        pass
+        screens = [
+            ConnectScreen(name='connect'),
+            CmdScreen(name='cmd')
+            ]
+        screen_manager = ScreenManager()
+        for screen in screens:
+            screen_manager.add_widget(screen)
+
+        return screen_manager
 
     def on_start(self):
         pass
@@ -34,14 +49,10 @@ class FishingRodApp(App):
     def on_stop(self):
         pass
 
-    def scan_for_devices(self):
-        print("scanning")
-        asyncio.run(self.BLEClient.cmd_scan())
 
-    async def connect_auto(self):
-        asyncio.run(self.BLEClient.autoconnect())
-
-
+async def main(app):
+    await asyncio.gather(app.async_run("asyncio"))
 
 if __name__ == '__main__':
-    FishingRodApp().run()
+    app = FishingRodApp()
+    asyncio.run(main(app))
