@@ -180,11 +180,22 @@ node HostAppPython{
   }
 
   class DesktopRepl{
-
+    + start_repl()
   }
 
   class PythonBackend{
-
+    + async List[BLEDevice] cmd_scan()
+    ..
+    + async bool cmd_connect()
+    + async bool cmd_autoconnect()
+    + async bool cmd_disconenct()
+    + bool check_connection(addr: str)
+    ..
+    + async cmd_init()
+    + async int cmd_speed_get()
+    + async cmd_speed_set(speed_val: int)
+    + async str cmd_driver()
+    + async cmd_boot()
   }
 
   KiviAndroidGui *.down. PythonBackend
