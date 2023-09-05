@@ -10,7 +10,7 @@
 
 struct DriverVersion driver_ver = {
 	.major = 1,
-	.minor = 0,
+	.minor = 1,
 };
 
 /// SPEED control
@@ -215,7 +215,7 @@ int motor_on(enum MotorDirection direction)
 	speed_control = 0;
 	count_cycles = 0;
 	old_count_cycles = 0;
-	if (direction == BACKWARD) {
+	if (direction == FORWARD) {
 		ret = gpio_pin_set_dt(&set_dir_p1, 1);
 		if (ret != 0) {
 			return UNABLE_TO_SET_GPIO;
@@ -224,7 +224,7 @@ int motor_on(enum MotorDirection direction)
 		if (ret != 0) {
 			return UNABLE_TO_SET_GPIO;
 		}
-	} else if (direction == FORWARD) {
+	} else if (direction == BACKWARD) {
 		ret = gpio_pin_set_dt(&set_dir_p1, 0);
 		if (ret != 0) {
 			return UNABLE_TO_SET_GPIO;
