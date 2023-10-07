@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 using DriverHostapp.Backend.CallbackInterface;
 using DriverHostapp.Backend.Utils.ControlModes;
+using DriverHostapp.Backend.Utils.SoftwareVersion;
 
 // STUB
 // NOT YET IMPLEMENTED
@@ -11,6 +12,11 @@ namespace DriverHostapp.Backend.CallbackBT{
     public class HostappBackendBluetooth : IHostappBackend{
 
         public NLog.Logger? Logger = null;
+
+        public SoftwareVersion BackendVersion = new(){
+            MajorVersion = 0,
+            MinorVersion = 0
+        };
 
         public void ListDevices(){
         }
@@ -45,7 +51,7 @@ namespace DriverHostapp.Backend.CallbackBT{
             return 0u;
         }
 
-        public void SetPosition(){
+        public void SetPosition(uint new_position){
 
         }
         public uint GetPosition(){
@@ -70,6 +76,10 @@ namespace DriverHostapp.Backend.CallbackBT{
 
         public void SetLogger(NLog.Logger? Logger){
             this.Logger = Logger;
+        }
+
+        public SoftwareVersion GetVersion(){
+            return BackendVersion;
         }
     }
 }

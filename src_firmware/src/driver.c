@@ -4,6 +4,7 @@
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/pwm.h>
 #include <zephyr/types.h>
+#include <string.h>
 #include "driver.h"
 #include "button.h"
 
@@ -30,6 +31,18 @@ struct k_timer my_timer;
 static bool drv_initialised; // was init command sent?
 static bool is_motor_on; // was motor_on function called?
 
+/// CONTROL MODE - whether speed or position is controlled
+static enum ControlModes control_mode = SPEED;
+
+/// POSITION control
+static uint32_t current_position;
+static uint32_t target_position;
+
+static const uint32_t position_control_modifier = 10u; // accuracy of position control;
+// if value is 10 position is controlled in deca-degrees; if 100 - centi-degrees etc.
+
+static const uint32_t max_position = 360u * position_control_modifier;
+static uint32_t encoder_cpr = 9600u; // TODO - add to Kconfig
 
 /// PINS definitions
 /// motor out
@@ -58,7 +71,7 @@ static int speed_pwm_set(uint32_t value)
 	}
 
 	if (value > max_mrpm) {
-		return DESIRED_SPEED_TO_HIGH;
+		return DESIRED_VALUE_TO_HIGH;
 	}
 
 	if (target_speed_mrpm < max_mrpm/10) {
@@ -77,37 +90,73 @@ static int speed_pwm_set(uint32_t value)
 	return SUCCESS;
 }
 
-
-void update_speed_continuus(struct k_work *work)
+void update_speed_and_position_continuus(struct k_work *work)
 {
-	count_timer += 1;
+	count_timer += 1; // debug only
 	uint64_t diff = 0;
 
+	// count encoder interrupts
 	if (count_cycles > old_count_cycles) {
 		diff = count_cycles - old_count_cycles;
 	}
 	old_count_cycles = count_cycles;
 
+	// calculate actual position
+	int32_t position_difference = (diff*max_position)/encoder_cpr;
+	int32_t new_position = (int32_t)current_position + position_difference;
+
+	if (new_position <= 0) {
+		current_position = (uint32_t)(max_position + new_position);
+	} else {
+		current_position = ((uint32_t)new_position)%max_position;
+	}
+
+	// calculate actual speed
 	actual_mrpm = RPM_TO_MRPM * MIN_TO_MS * diff /
 		(CONFIG_ENC_STEPS_PER_ROTATION *
 		 CONFIG_GEARSHIFT_RATIO *
 		 CONFIG_ENC_TIMER_PERIOD_MS);
 	int32_t speed_delta = target_speed_mrpm - actual_mrpm;
 
+	// if motor is on, calculate control value
 	if (get_motor_off_on()) {
-		int8_t Kp_numerator = 4;
-		int8_t Kp_denominator = 10;
+		if (control_mode == SPEED) {
+			int32_t speed_delta = target_speed_mrpm - actual_mrpm;
 
-		int64_t temp_modifier_num = Kp_numerator*speed_delta;
-		int32_t temp_modifier = (int32_t)(temp_modifier_num/Kp_denominator);
+			int8_t Kp_numerator = 4;
+			int8_t Kp_denominator = 10;
 
-		speed_control = (uint32_t)(speed_control + temp_modifier); // increase or decrese speed each iteration by Kp * speed_delta
+			int64_t temp_modifier_num = Kp_numerator*speed_delta;
+			int32_t temp_modifier = (int32_t)(temp_modifier_num/Kp_denominator);
 
-		ret_debug = speed_pwm_set(speed_control);
+			// increase or decrese speed each iteration by Kp * speed_delta
+			speed_control = (uint32_t)(speed_control + temp_modifier);
+
+			ret_debug = speed_pwm_set(speed_control);
+		} else if (control_mode == POSITION) {
+			// TODO - it is temporary version of position control - will be improved!
+			// TODO - control it in BOTH direction, currently it goes only forward
+			int32_t position_delta = target_position - current_position;
+
+			if (position_delta < 0) {
+				position_delta = -position_delta;
+			}
+			if (position_delta > max_position/(36)) {
+				//36 - control precision, TODO - possibly decrease the value?
+				ret_debug = speed_pwm_set(max_mrpm/3);
+				/*
+				 * max_mrpm/3 is temporary,
+				 * TODO - make this value dependent on position_delta,
+				 * further the target, move faster
+				 */
+			} else {
+				ret_debug = speed_pwm_set(0);
+			}
+		}
 	}
 }
 
-K_WORK_DEFINE(speed_update_work, update_speed_continuus);
+K_WORK_DEFINE(speed_update_work, update_speed_and_position_continuus);
 
 void my_timer_handler(struct k_timer *dummy)
 {
@@ -172,7 +221,8 @@ int init_pwm_motor_driver(uint32_t speed_max_mrpm)
 		// TODO - ret error checking!!
 	}
 
-	k_timer_start(&my_timer, K_MSEC(CONFIG_ENC_TIMER_PERIOD_MS), K_MSEC(CONFIG_ENC_TIMER_PERIOD_MS));
+	k_timer_start(&my_timer, K_MSEC(CONFIG_ENC_TIMER_PERIOD_MS),
+		      K_MSEC(CONFIG_ENC_TIMER_PERIOD_MS));
 
 	off_on_button_init();
 
@@ -183,6 +233,9 @@ int init_pwm_motor_driver(uint32_t speed_max_mrpm)
 
 int target_speed_set(uint32_t value)
 {
+	if (control_mode != SPEED) {
+		return UNSUPPORTED_FUNCTION_IN_CURRENT_MODE;
+	}
 	target_speed_mrpm = value;
 	count_cycles = 0;
 	old_count_cycles = 0;
@@ -291,6 +344,50 @@ uint32_t get_current_max_speed(void)
 	return max_mrpm;
 }
 
+int target_position_set(uint32_t new_target_position)
+{
+	if (!drv_initialised) {
+		return NOT_INITIALISED;
+	}
+
+	if (control_mode != POSITION) {
+		return UNSUPPORTED_FUNCTION_IN_CURRENT_MODE;
+	}
+
+	target_position = new_target_position;
+	return SUCCESS;
+}
+
+int position_get(uint32_t *value)
+{
+	if (!drv_initialised) {
+		return NOT_INITIALISED;
+	}
+
+	*value = current_position;
+	return SUCCESS;
+}
+
+int mode_set(enum ControlModes new_mode)
+{
+	if (!drv_initialised) {
+		return NOT_INITIALISED;
+	}
+
+	control_mode = new_mode;
+	return SUCCESS;
+}
+
+int mode_get(enum ControlModes *value)
+{
+	if (!drv_initialised) {
+		return NOT_INITIALISED;
+	}
+
+	*value = control_mode;
+	return SUCCESS;
+}
+
 uint64_t get_cycles_count_DEBUG(void)
 {
 	return count_cycles;
@@ -314,4 +411,32 @@ uint32_t get_calc_speed_DEBUG(void)
 struct DriverVersion get_driver_version(void)
 {
 	return driver_ver;
+}
+
+int get_control_mode_from_string(char *str_control_mode, enum ControlModes *ret_value)
+{
+	if (strcmp(str_control_mode, "speed") == 0) {
+		*ret_value = SPEED;
+		return SUCCESS;
+	} else if (strcmp(str_control_mode, "position") == 0 ||
+		  strcmp(str_control_mode, "pos") == 0) {
+
+		*ret_value = POSITION;
+		return SUCCESS;
+	} else {
+		return VALUE_CONVERSION_ERROR;
+	}
+}
+
+int get_control_mode_as_string(enum ControlModes control_mode, char **ret_value)
+{
+	if (control_mode == SPEED) {
+		*ret_value = "Speed";
+		return SUCCESS;
+	} else if (control_mode == POSITION) {
+		*ret_value = "Position";
+		return SUCCESS;
+	} else {
+		return VALUE_CONVERSION_ERROR;
+	}
 }

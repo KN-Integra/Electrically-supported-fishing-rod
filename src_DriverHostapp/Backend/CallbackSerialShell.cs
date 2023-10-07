@@ -8,6 +8,7 @@ using DriverHostapp.Backend.CallbackInterface;
 using DriverHostapp.Backend.Utils.SerialConnectionDefinition;
 using DriverHostapp.Backend.Utils.ErrorCodes;
 using DriverHostapp.Backend.Utils.ControlModes;
+using DriverHostapp.Backend.Utils.SoftwareVersion;
 
 namespace DriverHostapp.Backend.CallbackSerialShell{
     public class HostappBackendSerial : IHostappBackend{
@@ -15,6 +16,11 @@ namespace DriverHostapp.Backend.CallbackSerialShell{
         private List<SerialDriverConnection> ListOfDevices;
         private uint? connection_index;
         public NLog.Logger? Logger = null;
+
+        public SoftwareVersion BackendVersion = new(){
+            MajorVersion = 1,
+            MinorVersion = 1
+        };
 
         public HostappBackendSerial(){
             this.ListOfDevices = new List<SerialDriverConnection>();
@@ -27,7 +33,7 @@ namespace DriverHostapp.Backend.CallbackSerialShell{
             this.ListOfDevices = new List<SerialDriverConnection>();
 
             // Display each port name to the console.
-            foreach(string port in ports){ 
+            foreach(string port in ports){
                 try{
                     this.ListOfDevices.Add(this.get_serial_device_info(port));
                 } catch (WrongDevice ex){
@@ -66,11 +72,11 @@ namespace DriverHostapp.Backend.CallbackSerialShell{
             List<string> lines = serial_connection.read_lines();
 
             string final_id = "";
-            foreach (var l in lines){ 
+            foreach (var l in lines){
                 if(l.Contains("ID: ")){
                     final_id = l.Substring(4);
                     break;
-                }                
+                }
             }
 
             if(final_id == ""){
@@ -80,7 +86,7 @@ namespace DriverHostapp.Backend.CallbackSerialShell{
             serial_connection.HardwareID = final_id;
 
 
-            
+
 
             serial_connection.write_data("drv_version\n");
             lines = serial_connection.read_lines();
@@ -109,7 +115,7 @@ namespace DriverHostapp.Backend.CallbackSerialShell{
             if(index >= this.ListOfDevices.Count){
                 throw new NonExistingDevice($"id. {index} is not in the list of possible Serial connections!");
             }
-            this.connection_index = index;            
+            this.connection_index = index;
         }
 
         public void OpenConnection(){
@@ -144,11 +150,13 @@ namespace DriverHostapp.Backend.CallbackSerialShell{
 
             string error_code = "";
 
+            string return_code = "mode: ";
+
             foreach (string l in lines){
-                if(l.Contains("mode: ")){
-                    if(l.Substring(6) == "0"){
+                if(l.Contains(return_code)){
+                    if(l.Substring(return_code.Length) == "Speed"){
                         return ControlMode.Speed;
-                    } else if(l.Substring(6) == "1"){
+                    } else if(l.Substring(return_code.Length) == "Position"){
                         return ControlMode.Position;
                     }
                 } else{
@@ -189,13 +197,36 @@ namespace DriverHostapp.Backend.CallbackSerialShell{
             throw new ErrorFromDriver(error_code);
         }
 
-        public void SetPosition(){
-            // NOT YET IMPLEMENTED
+        public void SetPosition(uint new_position){
+            if(connection_index is null){
+                throw new DeviceNotChosen("Cannot send position if no connection was chosen!");
+            }
+            this.ListOfDevices[(int)this.connection_index].write_data($"pos {new_position}\n");
+            this.get_return_from_device_with_error_check($"Position set to: {new_position}");
         }
 
         public uint GetPosition(){
-            // NOT YET IMPLEMENTED
-            return 0u;
+            if(connection_index is null){
+                throw new DeviceNotChosen("Cannot get position if no connection was chosen!");
+            }
+
+            this.ListOfDevices[(int)this.connection_index].write_data($"pos\n");
+
+            List<string> lines = this.ListOfDevices[(int)this.connection_index].read_lines();
+
+            string error_code = "";
+
+            string return_code = "Position: ";
+
+            foreach (string l in lines){
+                if(l.Contains(return_code)){
+                    return Convert.ToUInt32(l.Substring(return_code.Length));
+                } else{
+                    error_code = l;
+                }
+            }
+
+            throw new ErrorFromDriver(error_code);
         }
 
         public void TurnDriverOn(){
@@ -215,7 +246,7 @@ namespace DriverHostapp.Backend.CallbackSerialShell{
             this.ListOfDevices[(int)this.connection_index].write_data("motor stop\n");
             this.get_return_from_device_with_error_check("Operation executed!");
         }
-        
+
         public bool GetOffOnState(){
             if(connection_index is null){
                 throw new DeviceNotChosen("Cannot get speed if no connection was chosen!");
@@ -230,7 +261,7 @@ namespace DriverHostapp.Backend.CallbackSerialShell{
                     return true;
                 } else if(l.Contains("Motor is turned off!")){
                     return false;
-                } else{ 
+                } else{
                     error_code = l;
                 }
             }
@@ -266,6 +297,10 @@ namespace DriverHostapp.Backend.CallbackSerialShell{
 
         public void SetLogger(NLog.Logger? Logger){
             this.Logger = Logger;
+        }
+
+        public SoftwareVersion GetVersion(){
+            return BackendVersion;
         }
     }
 }

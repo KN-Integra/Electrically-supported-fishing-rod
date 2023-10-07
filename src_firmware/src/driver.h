@@ -30,15 +30,25 @@ enum error_codes {
 	UNABLE_TO_SET_PWM_CHNL1 = 13,
 	UNABLE_TO_SET_PWM_CHNL2 = 14,
 
-	DESIRED_SPEED_TO_HIGH = 15,
+	DESIRED_VALUE_TO_HIGH = 15,
 
-	UNABLE_TO_SET_GPIO = 16
+	UNABLE_TO_SET_GPIO = 16,
+
+	UNSUPPORTED_FUNCTION_IN_CURRENT_MODE = 17,
+
+	VALUE_CONVERSION_ERROR
 };
 
 /// @brief motor direction definitions
 enum MotorDirection {
 	FORWARD,
 	BACKWARD
+};
+
+/// @brief Control Mode - whether excact speed or position is controlled
+enum ControlModes {
+	SPEED,
+	POSITION
 };
 
 /// @brief struct representing current software version
@@ -86,6 +96,26 @@ struct DriverVersion get_driver_version(void);
 /// @brief Simple getter for target speed set with target_speed_set function
 /// @return uint32_t representing target speed.
 uint32_t speed_target_get(void);
+
+/// @brief utility function for converting control mode as string to control mode as proper enum
+/// @param str_control_mode control mode as string
+/// @param ret_value output - control mode as control mode enum
+/// @return error defined in error_codes
+int get_control_mode_from_string(char *str_control_mode, enum ControlModes *ret_value);
+
+/// @brief utility function for converting control mode from enum to string
+/// @param control_mode control mode as enum
+/// @param ret_value output - control mode as string
+/// @return error defined in error_codes
+int get_control_mode_as_string(enum ControlModes control_mode, char **ret_value);
+
+int target_position_set(uint32_t new_target_position);
+
+int position_get(uint32_t *value);
+
+int mode_set(enum ControlModes new_mode);
+
+int mode_get(enum ControlModes *value);
 
 #if defined(CONFIG_BOARD_NRF52840DONGLE_NRF52840)
 /// @brief Enter bootloader mode (in order to flash new software via nRF connect programmer)

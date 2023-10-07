@@ -44,7 +44,7 @@ public partial class MessageBox : Window
 
             void AddButton(string caption, MessageBoxResult r, bool def = false){
                 var btn = new Button {Content = caption};
-                btn.Click += (_, __) => { 
+                btn.Click += (_, __) => {
                     res = r;
                     msgbox.Close();
                 };

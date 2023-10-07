@@ -10,18 +10,18 @@ public partial class InitOptions : Window{
         InitializeComponent();
     }
 
-    public void UpdateInitValues(object sender, RoutedEventArgs e){
+    private void UpdateInitValues(object sender, RoutedEventArgs e){
 
     }
 
     [System.Obsolete]
-    public async void SaveInitConfigToFile(object sender, RoutedEventArgs e){
+    private async void SaveInitConfigToFile(object sender, RoutedEventArgs e){
         SaveFileDialog saveFileDialog = new SaveFileDialog();
         saveFileDialog.DefaultExtension = ".json";
         await saveFileDialog.ShowAsync(this);
     }
 
-    public void LoadInitConfigToFile(object sender, RoutedEventArgs e){
+    private void LoadInitConfigToFile(object sender, RoutedEventArgs e){
 
     }
 }

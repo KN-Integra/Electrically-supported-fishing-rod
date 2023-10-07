@@ -12,7 +12,9 @@ static int cmd_init(const struct shell *shell, size_t argc, char *argv[])
 
 	ret = init_pwm_motor_driver(67000u); // TODO - change to argument
 	if (ret) {
-		shell_fprintf(shell, SHELL_ERROR, "usuccesful driver initialisation, errc: %d\n", ret);
+		shell_fprintf(shell, SHELL_ERROR,
+			"usuccesful driver initialisation, errc: %d\n", ret);
+
 	} else {
 		shell_fprintf(shell, SHELL_NORMAL, "initialisation succesful!\n");
 	}
@@ -29,8 +31,11 @@ static int cmd_speed(const struct shell *shell, size_t argc, char *argv[])
 		ret = speed_get(&speed_mrpm);
 		if (ret == SUCCESS) {
 			shell_fprintf(shell, SHELL_NORMAL, "speed: %d\n", speed_mrpm);
+
 		} else if (ret == NOT_INITIALISED) {
-			shell_fprintf(shell, SHELL_ERROR, "driver not initialised, could't get speed!\n");
+			shell_fprintf(shell, SHELL_ERROR,
+				"driver not initialised, could't get speed!\n");
+
 		} else {
 			shell_fprintf(shell, SHELL_ERROR, "other error, code: %d\n", ret);
 		}
@@ -39,12 +44,23 @@ static int cmd_speed(const struct shell *shell, size_t argc, char *argv[])
 	} else if (argc == 2) {
 		speed_mrpm = (uint32_t)strtol(argv[1], NULL, 10);
 		ret = target_speed_set(speed_mrpm);
+
 		if (ret == SUCCESS) {
 			shell_fprintf(shell, SHELL_NORMAL, "speed set to: %d\n", speed_mrpm);
+
 		} else if (ret == NOT_INITIALISED) {
-			shell_fprintf(shell, SHELL_ERROR, "driver not initialised, could't set speed!\n");
-		} else if (ret == DESIRED_SPEED_TO_HIGH) {
-			shell_fprintf(shell, SHELL_ERROR, "Desired speed to high! Desired speed: %d; Max speed: %d\n", speed_mrpm, get_current_max_speed());
+			shell_fprintf(shell, SHELL_ERROR,
+				"driver not initialised, could't set speed!\n");
+
+		} else if (ret == DESIRED_VALUE_TO_HIGH) {
+			shell_fprintf(shell, SHELL_ERROR,
+				"Desired speed to high! Desired speed: %d; Max speed: %d\n",
+				speed_mrpm, get_current_max_speed());
+
+		} else if (ret == UNSUPPORTED_FUNCTION_IN_CURRENT_MODE) {
+			shell_fprintf(shell, SHELL_ERROR,
+				"Function unsupported in current mode!\n");
+
 		} else {
 			shell_fprintf(shell, SHELL_ERROR, "other error, code: %d\n", ret);
 		}
@@ -59,38 +75,53 @@ static int cmd_off_on(const struct shell *shell, size_t argc, char *argv[])
 	if (argc == 1) {
 		if (get_motor_off_on()) {
 			shell_fprintf(shell, SHELL_NORMAL, "Motor is turned on!\n");
+
 		} else {
 			shell_fprintf(shell, SHELL_NORMAL, "Motor is turned off!\n");
 		}
+
 	} else if (argc == 2) {
 		if (strcmp(argv[1], "start") == 0) {
 			ret = motor_on(FORWARD);
+
 		} else if (strcmp(argv[1], "stop") == 0) {
 			ret = motor_off();
+
 		} else {
 			shell_fprintf(shell, SHELL_ERROR, "Unknown subcommand!\n");
 			return 0;
 		}
 
 		if (ret != 0) {
-			shell_fprintf(shell, SHELL_ERROR, "Couldn't change motor state! Error %d\n", ret);
+			shell_fprintf(shell, SHELL_ERROR,
+				"Couldn't change motor state! Error %d\n", ret);
+
 		} else {
 			shell_fprintf(shell, SHELL_NORMAL, "Operation executed!\n");
 		}
 
 	} else if (argc == 3) {
 		if (strcmp(argv[1], "start") == 0) {
-			if (strcmp(argv[2], "fwd") == 0 || strcmp(argv[2], "forward") == 0 || strcmp(argv[2], "f") == 0) {
+			if (strcmp(argv[2], "fwd") == 0 ||
+			    strcmp(argv[2], "forward") == 0 ||
+			    strcmp(argv[2], "f") == 0) {
 				ret = motor_on(FORWARD);
-			} else if (strcmp(argv[2], "bck") == 0 || strcmp(argv[2], "backward") == 0 || strcmp(argv[2], "b") == 0) {
+
+			} else if (strcmp(argv[2], "bck") == 0 ||
+				   strcmp(argv[2], "backward") == 0 ||
+				   strcmp(argv[2], "b") == 0) {
 				ret = motor_on(BACKWARD);
+
 			} else {
-				shell_fprintf(shell, SHELL_ERROR, "Unknown subcommand!, %s\n", argv[2]);
+				shell_fprintf(shell, SHELL_ERROR,
+					"Unknown subcommand!, %s\n", argv[2]);
 				return 0;
 			}
 
 			if (ret != 0) {
-				shell_fprintf(shell, SHELL_ERROR, "Couldn't change motor state! Error %d\n\n", ret);
+				shell_fprintf(shell, SHELL_ERROR,
+					"Couldn't change motor state! Error %d\n\n", ret);
+
 			} else {
 				shell_fprintf(shell, SHELL_NORMAL, "Operation executed!\n");
 			}
@@ -100,6 +131,100 @@ static int cmd_off_on(const struct shell *shell, size_t argc, char *argv[])
 		}
 	}
 
+	return 0;
+}
+
+static int cmd_position(const struct shell *shell, size_t argc, char *argv[])
+{
+	int ret;
+	uint32_t position;
+
+	if (argc == 1) {
+		ret = position_get(&position);
+		if (ret == SUCCESS) {
+			shell_fprintf(shell, SHELL_NORMAL, "Position: %d\n", position);
+
+		} else if (ret == NOT_INITIALISED) {
+			shell_fprintf(shell, SHELL_ERROR,
+				"Driver not initialised, could't get position!\n");
+
+		} else {
+			shell_fprintf(shell, SHELL_ERROR, "Other error, code: %d\n", ret);
+		}
+
+		return 0;
+	} else if (argc == 2) {
+		position = (uint32_t)strtol(argv[1], NULL, 10);
+		ret = target_position_set(position);
+		if (ret == SUCCESS) {
+			shell_fprintf(shell, SHELL_NORMAL, "Position set to: %d\n", position);
+
+		} else if (ret == NOT_INITIALISED) {
+			shell_fprintf(shell, SHELL_ERROR,
+				"Driver not initialised, could't set position!\n");
+
+		} else if (ret == DESIRED_VALUE_TO_HIGH) {
+			shell_fprintf(shell, SHELL_ERROR,
+				"Desired position to high! Desired: %d. Max: 360\n", position);
+
+		} else if (ret == UNSUPPORTED_FUNCTION_IN_CURRENT_MODE) {
+			shell_fprintf(shell, SHELL_ERROR,
+			"Function unsupported in current mode!\n");
+
+		} else {
+			shell_fprintf(shell, SHELL_ERROR, "Other error, code: %d\n", ret);
+		}
+	}
+	return 0;
+}
+
+static int cmd_mode(const struct shell *shell, size_t argc, char *argv[])
+{
+	int ret;
+	enum ControlModes mode;
+
+	if (argc == 1) {
+		ret = mode_get(&mode);
+		if (ret == SUCCESS) {
+			char *mode_as_str = "";
+			int r = get_control_mode_as_string(mode, &mode_as_str);
+
+			if (r == SUCCESS) {
+				shell_fprintf(shell, SHELL_NORMAL, "mode: %s\n", mode_as_str);
+
+			} else {
+				shell_fprintf(shell, SHELL_ERROR,
+				"Conversion error, code: %d\n", ret);
+
+			}
+		} else if (ret == NOT_INITIALISED) {
+			shell_fprintf(shell, SHELL_ERROR,
+				"driver not initialised, could't get mode!\n");
+
+		} else {
+			shell_fprintf(shell, SHELL_ERROR, "other error, code: %d\n", ret);
+		}
+
+		return 0;
+	} else if (argc == 2) {
+		ret = get_control_mode_from_string(argv[1], &mode);
+		if (ret != SUCCESS) {
+			shell_fprintf(shell, SHELL_ERROR,
+				"Setting Control Mode crashed at conversion, errc: %d\n", ret);
+		}
+
+		ret = mode_set(mode);
+		if (ret == SUCCESS) {
+			shell_fprintf(shell, SHELL_NORMAL, "mode set to: %s\n", argv[1]);
+
+		} else if (ret == NOT_INITIALISED) {
+			shell_fprintf(shell, SHELL_ERROR,
+				"driver not initialised, could't set mode!\n");
+
+		} else {
+			shell_fprintf(shell, SHELL_ERROR, "other error, code: %d\n", ret);
+		}
+	}
 	return 0;
 }
 
@@ -129,18 +254,29 @@ static int cmd_drv_version(const struct shell *shell, size_t argc, char *argv[])
 {
 	const struct DriverVersion tmp_ver = get_driver_version();
 
-	shell_fprintf(shell, SHELL_ERROR, "Software version: %d.%d\n", tmp_ver.major, tmp_ver.minor);
+	shell_fprintf(shell, SHELL_ERROR,
+		      "Software version: %d.%d\n", tmp_ver.major, tmp_ver.minor);
 	return 0;
 }
 
 
-SHELL_CMD_REGISTER(init, NULL, "Initialise PWM motors and GPIOs\ninit to use default values\ninit with args - TODO", cmd_init);
-SHELL_CMD_ARG_REGISTER(speed, NULL, "speed in milli RPM (one thousands of RPM)\nspeed to get speed\nspeed <value> to set speed", cmd_speed, 1, 1);
+SHELL_CMD_REGISTER(init, NULL,
+	"Initialise PWM motors and GPIOs\ninit to use default values\n init with args - TODO",
+	cmd_init);
+
+SHELL_CMD_ARG_REGISTER(speed, NULL,
+	"speed in milli RPM (one thousands of RPM)\nspeed to get speed\n speed <val> to set speed",
+	cmd_speed, 1, 1);
+
 SHELL_CMD_ARG_REGISTER(motor, NULL, "Start or stop motor\nstart <f b>\noff", cmd_off_on, 1, 2);
+SHELL_CMD_ARG_REGISTER(pos, NULL, "----------------------", cmd_position, 1, 1);
+SHELL_CMD_ARG_REGISTER(mode, NULL, "----------------------", cmd_mode, 1, 1);
 SHELL_CMD_REGISTER(debug, NULL, "get debug info", cmd_debug);
 SHELL_CMD_REGISTER(drv_version, NULL, "get motor driver version", cmd_drv_version);
 
 
 #if defined(CONFIG_BOARD_NRF52840DONGLE_NRF52840)
-SHELL_CMD_REGISTER(boot, NULL, "Enter bootloader mode, in order to flash new software via nRF connect programmer", cmd_boot);
+SHELL_CMD_REGISTER(boot, NULL,
+	"Enter bootloader mode, in order to flash new software via nRF connect programmer",
+	cmd_boot);
 #endif
