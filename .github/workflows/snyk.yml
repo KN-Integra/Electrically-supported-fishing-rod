@@ -1,0 +1,21 @@
+name: Snyk Security
+
+on:
+  # Allows you to run this workflow manually from the Actions tab or through HTTP API
+  schedule:
+    - cron: '0 0 * * MON'
+  workflow_dispatch:
+
+jobs:
+  security:
+    name: Snyk Security
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Snyk
+        uses: snyk/actions@0.4.0
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: monitor
