@@ -6,4 +6,8 @@
  *
  */
 
+#if defined(CONFIG_BT_SUPPORT)
+
 int init_bt(void);
+
+#endif

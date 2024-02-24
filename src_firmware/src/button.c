@@ -18,9 +18,9 @@ static void cooldown_expired(struct k_work *work)
 	int state = gpio_pin_get_dt(&off_on_button);
 
 	if (state != 0) {
-		motor_off();
+		motor_off(CH0);
 	} else {
-		motor_on(FORWARD);
+		motor_on(FORWARD, CH0);
 	}
 }
 
