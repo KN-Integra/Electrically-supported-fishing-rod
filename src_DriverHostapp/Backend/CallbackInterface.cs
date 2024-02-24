@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using DriverHostapp.Backend.Utils.ControlModes;
+using DriverHostapp.Backend.Utils.SoftwareVersion;
 
 namespace DriverHostapp.Backend.CallbackInterface{
     public interface IHostappBackend{
@@ -19,7 +20,7 @@ namespace DriverHostapp.Backend.CallbackInterface{
         void SetSpeed(uint target_speed_in_mrpm);
         uint GetSpeed();
 
-        void SetPosition();
+        void SetPosition(uint new_position);
         uint GetPosition();
 
         void TurnDriverOn();
@@ -30,5 +31,7 @@ namespace DriverHostapp.Backend.CallbackInterface{
         void CloseConnection();
 
         void SetLogger(NLog.Logger? Logger);
+
+        SoftwareVersion GetVersion();
     }
 }

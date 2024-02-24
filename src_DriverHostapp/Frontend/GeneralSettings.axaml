@@ -8,6 +8,9 @@
         Title="GeneralSettings">
   <Border BorderThickness="10">
   <StackPanel>
+    <TextBlock Name="Front_version"> </TextBlock>
+    <TextBlock Name="Serial_version"> </TextBlock>
+    <TextBlock Name="Bluetooth_version"> </TextBlock>
     <CheckBox Name="LoggingCheckbox" Checked="LoggingCheckBox_Checked" Unchecked="LoggingCheckBox_UnChecked">Enable Logging?</CheckBox>
   </StackPanel>
   </Border>
