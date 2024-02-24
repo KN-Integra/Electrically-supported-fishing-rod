@@ -5,6 +5,8 @@
 #include <zephyr/shell/shell.h>
 #include <stdlib.h>
 #include "driver.h"
+#include "storage.h"
+
 
 static int cmd_init(const struct shell *shell, size_t argc, char *argv[])
 {
@@ -129,7 +131,99 @@ static int cmd_drv_version(const struct shell *shell, size_t argc, char *argv[])
 {
 	const struct DriverVersion tmp_ver = get_driver_version();
 
-	shell_fprintf(shell, SHELL_ERROR, "Software version: %d.%d\n", tmp_ver.major, tmp_ver.minor);
+	shell_fprintf(shell, SHELL_ERROR,
+		      "Software version: %d.%d\n", tmp_ver.major, tmp_ver.minor);
+	return 0;
+}
+
+static int cmd_template_active(const struct shell *shell, size_t argc, char *argv[])
+{
+	struct Template current;
+	int idx = get_current_template(&current);
+
+	if (idx >= 0) {
+		shell_fprintf(shell, SHELL_INFO,
+			      "Name: %-9s speed %d\n", current.name, current.speed);
+	} else {
+		shell_fprintf(shell, SHELL_WARNING, "Template not initialized!\n");
+
+	}
+
+	return 0;
+}
+
+static int cmd_template_get(const struct shell *shell, size_t argc, char *argv[])
+{
+	uint8_t size = get_template_size();
+
+	if (argc == 1) {
+		struct Template *tmp = (struct Template *)malloc(size * sizeof(struct Template));
+
+		get_templates(tmp);
+		for (int i = 0; i < size; i++) {
+			shell_fprintf(shell, SHELL_INFO,
+				      "Name: %-9s speed %d\n", tmp[i].name, tmp[i].speed);
+		}
+
+		free(tmp);
+	} else {
+		struct Template res;
+
+		get_template_by_name(argv[1], &res);
+		shell_fprintf(shell, SHELL_INFO, "speed %d\n", res.speed);
+	}
+
+	return 0;
+}
+
+static int cmd_template_apply(const struct shell *shell, size_t argc, char *argv[])
+{
+	uint8_t size = get_template_size();
+	struct Template *tmp = (struct Template *)malloc(size * sizeof(struct Template));
+	struct Template res;
+
+	get_templates(tmp);
+	get_template_by_name(argv[1], &res);
+
+	target_speed_set(res.speed);
+	set_current_template(res.name);
+
+	shell_fprintf(shell, SHELL_ERROR, "Speed template:\n");
+
+	free(tmp);
+	return 0;
+}
+
+static int cmd_template_set(const struct shell *shell, size_t argc, char *argv[])
+{
+	struct Template new_template;
+
+	strcpy(new_template.name, argv[1]);
+	new_template.speed = (uint32_t)strtol(argv[2], NULL, 10);
+	set_template(new_template);
+	shell_fprintf(shell, SHELL_INFO, "Done\n");
+
+	return 0;
+}
+
+static int cmd_template_clear(const struct shell *shell, size_t argc, char *argv[])
+{
+	if (argc == 1) {
+		int exit_command = factory_reset();
+
+		shell_fprintf(shell, SHELL_INFO,
+			      "Template clear exited with command: %d\n", exit_command);
+	} else {
+		remove_template_by_name(argv[1]);
+	}
+	return 0;
+}
+
+static int cmd_template_size(const struct shell *shell, size_t argc, char *argv[])
+{
+	int size = get_template_size();
+
+	shell_fprintf(shell, SHELL_ERROR, "Current size of template buffer: %d\n", size);
 	return 0;
 }
 
@@ -139,6 +233,19 @@ SHELL_CMD_ARG_REGISTER(speed, NULL, "speed in milli RPM (one thousands of RPM)\n
 SHELL_CMD_ARG_REGISTER(motor, NULL, "Start or stop motor\nstart <f b>\noff", cmd_off_on, 1, 2);
 SHELL_CMD_REGISTER(debug, NULL, "get debug info", cmd_debug);
 SHELL_CMD_REGISTER(drv_version, NULL, "get motor driver version", cmd_drv_version);
+
+SHELL_STATIC_SUBCMD_SET_CREATE(sub_template,
+	SHELL_CMD_ARG(active, NULL, "Active template", cmd_template_active, 1, 0),
+	SHELL_CMD_ARG(get, NULL, "get <optional name>", cmd_template_get, 1, 1),
+	SHELL_CMD_ARG(apply,   NULL, "apply name", cmd_template_apply, 2, 0),
+	SHELL_CMD_ARG(set,   NULL, "set name speed", cmd_template_set, 3, 0),
+	SHELL_CMD_ARG(clear,   NULL, "clear template by name. If none given clears all templates.",
+				  cmd_template_clear, 1, 1),
+	SHELL_CMD_ARG(size,   NULL, "get amount of templates", cmd_template_size, 1, 0),
+	SHELL_SUBCMD_SET_END
+);
+
+SHELL_CMD_REGISTER(template, &sub_template, "get/apply/create speed template", NULL);
 
 
 #if defined(CONFIG_BOARD_NRF52840DONGLE_NRF52840)

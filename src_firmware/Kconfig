@@ -19,4 +19,8 @@ config ENC_STEPS_PER_ROTATION
 config ENC_TIMER_PERIOD_MS
 	int "Sampling period for continuus speed calculation"
 	default 100
+
+config TEMPLATE_NAME_SIZE
+	int "Max size of template's name in characters"
+	default 10
 endmenu

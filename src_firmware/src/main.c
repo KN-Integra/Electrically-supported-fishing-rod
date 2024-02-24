@@ -9,10 +9,22 @@
 #include <string.h>
 
 #include "driver.h"
+#include "storage.h"
 
 #include <zephyr/drivers/uart.h>
 
-void main(void)
+int main(void)
 {
+	struct Template initial_template;
+	int idx = 0;
+
+	init_storage();
+	idx = get_current_template(&initial_template);
+
+	if (idx >= 0) {// TODO - test it, currently broken by init controller.
+		target_speed_set(initial_template.speed);
+	}
+
 	init_bt();
+	return 0;
 }
