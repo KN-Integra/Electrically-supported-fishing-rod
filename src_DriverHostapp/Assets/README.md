@@ -1,1 +1,0 @@
-Settings.png source: https://www.flaticon.com/free-icon/settings_126472
