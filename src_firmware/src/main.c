@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright (c) 2023 Maciej Baczmanski, Michal Kawiak, Jakub Mazur
-// Copyright (c) 2016 Intel Corporation
+// Copyright (c) 2024 Maciej Baczmanski, Jakub Mazur, Michał Kawiak
 
 #include <zephyr/kernel.h>
 
@@ -14,6 +13,7 @@
 
 #include "driver.h"
 #include "storage.h"
+#include "button.h"
 
 #if defined(CONFIG_UART_SHELL_SUPPORT)
 #include <zephyr/drivers/uart.h>
@@ -28,11 +28,13 @@ int main(void)
 	init_storage();
 	error = get_current_template(&initial_template);
 
-	if (error == SUCCESS) {// TODO - test it, currently broken by init controller.
+	if (error == SUCCESS) {
 		target_speed_set(initial_template.speed, CH0);
 	}
 
-	#if defined(CONFIG_BT_SUPPORT)
+#if defined(CONFIG_BT_SUPPORT)
 	init_bt();
-	#endif
+#endif
+
+	off_on_button_init();
 }
