@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright (c) 2023 Maciej Baczmanski, Michal Kawiak, Jakub Mazur
 // Copyright (c) 2016 Intel Corporation
+#if defined(CONFIG_BT_SUPPORT)
+// TODO - move define wrappers to CMakeLists. If whole is not to be compiled, make rule in CMAKE
 
 #include "driver.h"
 
@@ -34,7 +36,7 @@ static ssize_t write_ble(struct bt_conn *conn, const struct bt_gatt_attr *attr,
 
 	if (len == 1) {
 		if (data[0] == 0) {
-			init_pwm_motor_driver(67000u);
+			init_pwm_motor_driver();
 		}
 	#if defined(CONFIG_BOARD_NRF52840DONGLE_NRF52840)
 
@@ -54,7 +56,7 @@ static ssize_t write_ble(struct bt_conn *conn, const struct bt_gatt_attr *attr,
 		}
 		return len;
 	} else if (len == 5) {
-		target_speed_set(convertToUint32(data+1U));
+		target_speed_set(convertToUint32(data+1U), CH0);
 	}
 	return len;
 }
@@ -69,3 +71,5 @@ BT_GATT_SERVICE_DEFINE(hrs_svc,
 			       BT_GATT_PERM_WRITE,
 			       NULL, write_ble, NULL),
 );
+
+#endif
