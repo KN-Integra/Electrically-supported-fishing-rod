@@ -4,3 +4,6 @@
 [submodule "src_Hostapp"]
 	path = src_Hostapp
 	url = git@github.com:eSqadron/NRF52840-Brushed-Motor-Controller-HostApp.git
+[submodule "EE_schematics"]
+	path = EE_schematics
+	url = git@github.com:KN-Integra/Electrically-supported-fishing-rod-hardware.git
