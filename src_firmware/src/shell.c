@@ -42,12 +42,8 @@ static int cmd_speed(const struct shell *shell, size_t argc, char *argv[])
 		if (ret == SUCCESS) {
 			shell_fprintf(shell, SHELL_NORMAL, "speed: %d\n", speed_mrpm);
 
-		} else if (ret == ERR_NOT_INITIALISED) {
-			shell_fprintf(shell, SHELL_ERROR,
-				"driver not initialised, could't get speed!\n");
-
 		} else {
-			shell_fprintf(shell, SHELL_ERROR, "other error, code: %d\n", ret);
+			shell_fprintf(shell, SHELL_ERROR, "Error, code: %d!\n", ret);
 		}
 
 		return 0;
@@ -57,10 +53,6 @@ static int cmd_speed(const struct shell *shell, size_t argc, char *argv[])
 
 		if (ret == SUCCESS) {
 			shell_fprintf(shell, SHELL_NORMAL, "speed set to: %d\n", speed_mrpm);
-
-		} else if (ret == ERR_NOT_INITIALISED) {
-			shell_fprintf(shell, SHELL_ERROR,
-				"driver not initialised, could't set speed!\n");
 
 		} else if (ret == ERR_DESIRED_VALUE_TO_HIGH) {
 			shell_fprintf(shell, SHELL_ERROR,
@@ -72,7 +64,7 @@ static int cmd_speed(const struct shell *shell, size_t argc, char *argv[])
 				"Function unsupported in current mode!\n");
 
 		} else {
-			shell_fprintf(shell, SHELL_ERROR, "other error, code: %d\n", ret);
+			shell_fprintf(shell, SHELL_ERROR, "Other error, code: %d\n", ret);
 		}
 	}
 	return 0;
@@ -104,7 +96,7 @@ static int cmd_off_on(const struct shell *shell, size_t argc, char *argv[])
 			return 0;
 		}
 
-		if (ret != 0) {
+		if (ret != SUCCESS) {
 			shell_fprintf(shell, SHELL_ERROR,
 				"Couldn't change motor state! Error %d\n", ret);
 
@@ -131,7 +123,7 @@ static int cmd_off_on(const struct shell *shell, size_t argc, char *argv[])
 				return 0;
 			}
 
-			if (ret != 0) {
+			if (ret != SUCCESS) {
 				shell_fprintf(shell, SHELL_ERROR,
 					      "Couldn't change motor state! Error %d\n\n", ret);
 
@@ -157,12 +149,8 @@ static int cmd_position(const struct shell *shell, size_t argc, char *argv[])
 		if (ret == SUCCESS) {
 			shell_fprintf(shell, SHELL_NORMAL, "Position: %d\n", position);
 
-		} else if (ret == ERR_NOT_INITIALISED) {
-			shell_fprintf(shell, SHELL_ERROR,
-				"Driver not initialised, could't get position!\n");
-
 		} else {
-			shell_fprintf(shell, SHELL_ERROR, "Other error, code: %d\n", ret);
+			shell_fprintf(shell, SHELL_ERROR, "Error, code: %d!\n", ret);
 		}
 
 		return 0;
@@ -171,10 +159,6 @@ static int cmd_position(const struct shell *shell, size_t argc, char *argv[])
 		ret = target_position_set(position, relevant_channel);
 		if (ret == SUCCESS) {
 			shell_fprintf(shell, SHELL_NORMAL, "Position set to: %d\n", position);
-
-		} else if (ret == ERR_NOT_INITIALISED) {
-			shell_fprintf(shell, SHELL_ERROR,
-				"Driver not initialised, could't set position!\n");
 
 		} else if (ret == ERR_DESIRED_VALUE_TO_HIGH) {
 			shell_fprintf(shell, SHELL_ERROR,
@@ -187,8 +171,6 @@ static int cmd_position(const struct shell *shell, size_t argc, char *argv[])
 		} else {
 			shell_fprintf(shell, SHELL_ERROR, "Other error, code: %d\n", ret);
 		}
-		// TODO - improve messages so that there is no chain of if elses -
-		// eg. map: error code -> message?
 	}
 	return 0;
 }
@@ -225,19 +207,16 @@ static int cmd_mode(const struct shell *shell, size_t argc, char *argv[])
 		ret = get_control_mode_from_string(argv[1], &mode);
 		if (ret != SUCCESS) {
 			shell_fprintf(shell, SHELL_ERROR,
-				"Setting Control Mode crashed at conversion, errc: %d\n", ret);
+				"Conversion error, errc: %d\n", ret);
+			return 0;
 		}
 
 		ret = mode_set(mode);
 		if (ret == SUCCESS) {
 			shell_fprintf(shell, SHELL_NORMAL, "mode set to: %s\n", argv[1]);
 
-		} else if (ret == ERR_NOT_INITIALISED) {
-			shell_fprintf(shell, SHELL_ERROR,
-				"driver not initialised, could't set mode!\n");
-
 		} else {
-			shell_fprintf(shell, SHELL_ERROR, "other error, code: %d\n", ret);
+			shell_fprintf(shell, SHELL_ERROR, "Error, code: %d\n", ret);
 		}
 	}
 	return 0;
@@ -287,8 +266,12 @@ static int cmd_template_active(const struct shell *shell, size_t argc, char *arg
 	if (error == SUCCESS) {
 		shell_fprintf(shell, SHELL_INFO,
 			      "Name: %-9s speed %d\n", current.name, current.speed);
+	} else if(error == ERR_ERROR_CODE_FROM_ERRNO){
+		shell_fprintf(shell, SHELL_ERROR,
+			      "Error code from errno.h, code: %d in line %d",
+			      get_errno_error_code(), get_errno_error_line());
 	} else {
-		shell_fprintf(shell, SHELL_WARNING,
+		shell_fprintf(shell, SHELL_ERROR,
 			      "Error while checking active template: %d!\n", error);
 
 	}
@@ -305,12 +288,19 @@ static int cmd_template_get(const struct shell *shell, size_t argc, char *argv[]
 		struct Template *tmp = (struct Template *)malloc(size * sizeof(struct Template));
 
 		error = get_templates(tmp);
+
 		if(error == ERR_EMPTY_TEMPLATE_LIST){
 			shell_fprintf(shell, SHELL_WARNING, "Template list is empty!\n");
 			return 0;
-		} else if(error != SUCCESS){
+		} else if(error == ERR_ERROR_CODE_FROM_ERRNO){
+			shell_fprintf(shell, SHELL_ERROR,
+				"Error code from errno.h, code: %d in line %d",
+				get_errno_error_code(), get_errno_error_line());
+			return 0;
+		}  else if(error != SUCCESS){
 			shell_fprintf(shell, SHELL_WARNING,
 				      "Error while getting template list: %d!\n", error);
+			return 0;
 		}
 
 		for (int i = 0; i < size; i++) {
@@ -330,6 +320,10 @@ static int cmd_template_get(const struct shell *shell, size_t argc, char *argv[]
 			shell_fprintf(shell, SHELL_WARNING, "Couldn't find this template!\n");
 		} else if(error == ERR_EMPTY_TEMPLATE_LIST){
 			shell_fprintf(shell, SHELL_WARNING, "Template list is empty!\n");
+		} else if(error == ERR_ERROR_CODE_FROM_ERRNO){
+			shell_fprintf(shell, SHELL_ERROR,
+				"Error code from errno.h, code: %d in line %d",
+				get_errno_error_code(), get_errno_error_line());
 		} else {
 			shell_fprintf(shell, SHELL_ERROR,
 				      "Other error during template get! Error Code: %d\n", error);
@@ -349,6 +343,11 @@ static int cmd_template_apply(const struct shell *shell, size_t argc, char *argv
 	if(ret == ERR_COULDNT_FIND_TEMPLATE) {
 		shell_fprintf(shell, SHELL_WARNING, "Couldn't find template!\n");
 		return 0;
+	} else if(ret == ERR_ERROR_CODE_FROM_ERRNO){
+		shell_fprintf(shell, SHELL_ERROR,
+			      "Error code from errno.h, code: %d in line %d",
+			      get_errno_error_code(), get_errno_error_line());
+		return 0;
 	} else if(ret != SUCCESS) {
 		shell_fprintf(shell, SHELL_ERROR,
 			      "Other error while searching for saved template: %d!\n", ret);
@@ -359,7 +358,12 @@ static int cmd_template_apply(const struct shell *shell, size_t argc, char *argv
 	if (ret == SUCCESS) {
 		shell_fprintf(shell, SHELL_NORMAL, "speed set to: %d on channel %d\n", res.speed, relevant_channel);
 
-	} else if (ret == ERR_DESIRED_VALUE_TO_HIGH) {
+	} else if(ret == ERR_ERROR_CODE_FROM_ERRNO){
+		shell_fprintf(shell, SHELL_ERROR,
+			      "Error code from errno.h, code: %d in line %d",
+			      get_errno_error_code(), get_errno_error_line());
+		return 0;
+	} else  if (ret == ERR_DESIRED_VALUE_TO_HIGH) {
 		shell_fprintf(shell, SHELL_ERROR,
 			"Desired template speed too high! Desired speed: %d; Max speed: %d\n",
 			res.speed, get_current_max_speed());
@@ -391,7 +395,7 @@ static int cmd_template_set(const struct shell *shell, size_t argc, char *argv[]
 	new_template.speed = (uint32_t)strtol(argv[2], NULL, 10);
 	ret = set_template(new_template);
 	if(ret == SUCCESS){
-		shell_fprintf(shell, SHELL_INFO, "Done, new template created\n");
+		shell_fprintf(shell, SHELL_INFO, "New template created\n");
 	} else {
 		shell_fprintf(shell, SHELL_ERROR, "Error while setting new template, code: %d\n", ret);
 	}
@@ -402,10 +406,17 @@ static int cmd_template_set(const struct shell *shell, size_t argc, char *argv[]
 static int cmd_template_clear(const struct shell *shell, size_t argc, char *argv[])
 {
 	if (argc == 1) {
-		int exit_command = factory_reset();
+		int error = factory_reset();
+		if (error == SUCCESS) {
+			shell_fprintf(shell, SHELL_NORMAL, "Templates cleared\n");
 
-		shell_fprintf(shell, SHELL_INFO,
-			      "Template clear exited with command: %d\n", exit_command);
+		} else if(error == ERR_ERROR_CODE_FROM_ERRNO){
+			shell_fprintf(shell, SHELL_ERROR,
+				"Error code from errno.h, code: %d in line %d",
+				get_errno_error_code(), get_errno_error_line());
+		} else {
+			shell_fprintf(shell, SHELL_ERROR, "other error, code: %d\n", error);
+		}
 	} else {
 		remove_template_by_name(argv[1]);
 	}
