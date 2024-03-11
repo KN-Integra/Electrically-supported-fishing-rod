@@ -266,7 +266,7 @@ static int cmd_template_active(const struct shell *shell, size_t argc, char *arg
 	if (error == SUCCESS) {
 		shell_fprintf(shell, SHELL_INFO,
 			      "Name: %-9s speed %d\n", current.name, current.speed);
-	} else if(error == ERR_ERROR_CODE_FROM_ERRNO){
+	} else if (error == ERR_ERROR_CODE_FROM_ERRNO) {
 		shell_fprintf(shell, SHELL_ERROR,
 			      "Error code from errno.h, code: %d in line %d",
 			      get_errno_error_code(), get_errno_error_line());
@@ -289,15 +289,15 @@ static int cmd_template_get(const struct shell *shell, size_t argc, char *argv[]
 
 		error = get_templates(tmp);
 
-		if(error == ERR_EMPTY_TEMPLATE_LIST){
+		if (error == ERR_EMPTY_TEMPLATE_LIST) {
 			shell_fprintf(shell, SHELL_WARNING, "Template list is empty!\n");
 			return 0;
-		} else if(error == ERR_ERROR_CODE_FROM_ERRNO){
+		} else if (error == ERR_ERROR_CODE_FROM_ERRNO) {
 			shell_fprintf(shell, SHELL_ERROR,
 				"Error code from errno.h, code: %d in line %d",
 				get_errno_error_code(), get_errno_error_line());
 			return 0;
-		}  else if(error != SUCCESS){
+		}  else if (error != SUCCESS) {
 			shell_fprintf(shell, SHELL_WARNING,
 				      "Error while getting template list: %d!\n", error);
 			return 0;
@@ -314,13 +314,14 @@ static int cmd_template_get(const struct shell *shell, size_t argc, char *argv[]
 		uint8_t template_id;
 
 		int error = get_template_and_id_by_name(argv[1], &res, &template_id); // TODO -NULL?
-		if(error == SUCCESS) {
+
+		if (error == SUCCESS) {
 			shell_fprintf(shell, SHELL_INFO, "speed %d\n", res.speed);
-		} else if(error == ERR_COULDNT_FIND_TEMPLATE) {
+		} else if (error == ERR_COULDNT_FIND_TEMPLATE) {
 			shell_fprintf(shell, SHELL_WARNING, "Couldn't find this template!\n");
-		} else if(error == ERR_EMPTY_TEMPLATE_LIST){
+		} else if (error == ERR_EMPTY_TEMPLATE_LIST) {
 			shell_fprintf(shell, SHELL_WARNING, "Template list is empty!\n");
-		} else if(error == ERR_ERROR_CODE_FROM_ERRNO){
+		} else if (error == ERR_ERROR_CODE_FROM_ERRNO) {
 			shell_fprintf(shell, SHELL_ERROR,
 				"Error code from errno.h, code: %d in line %d",
 				get_errno_error_code(), get_errno_error_line());
@@ -340,15 +341,15 @@ static int cmd_template_apply(const struct shell *shell, size_t argc, char *argv
 	int ret;
 
 	ret = get_template_and_id_by_name(argv[1], &res, &template_id);
-	if(ret == ERR_COULDNT_FIND_TEMPLATE) {
+	if (ret == ERR_COULDNT_FIND_TEMPLATE) {
 		shell_fprintf(shell, SHELL_WARNING, "Couldn't find template!\n");
 		return 0;
-	} else if(ret == ERR_ERROR_CODE_FROM_ERRNO){
+	} else if (ret == ERR_ERROR_CODE_FROM_ERRNO) {
 		shell_fprintf(shell, SHELL_ERROR,
 			      "Error code from errno.h, code: %d in line %d",
 			      get_errno_error_code(), get_errno_error_line());
 		return 0;
-	} else if(ret != SUCCESS) {
+	} else if (ret != SUCCESS) {
 		shell_fprintf(shell, SHELL_ERROR,
 			      "Other error while searching for saved template: %d!\n", ret);
 		return 0;
@@ -356,9 +357,12 @@ static int cmd_template_apply(const struct shell *shell, size_t argc, char *argv
 
 	ret = target_speed_set(res.speed, relevant_channel);
 	if (ret == SUCCESS) {
-		shell_fprintf(shell, SHELL_NORMAL, "speed set to: %d on channel %d\n", res.speed, relevant_channel);
+		shell_fprintf(shell, SHELL_NORMAL,
+			      "speed set to: %d on channel %d\n",
+			      res.speed,
+			      relevant_channel);
 
-	} else if(ret == ERR_ERROR_CODE_FROM_ERRNO){
+	} else if (ret == ERR_ERROR_CODE_FROM_ERRNO) {
 		shell_fprintf(shell, SHELL_ERROR,
 			      "Error code from errno.h, code: %d in line %d",
 			      get_errno_error_code(), get_errno_error_line());
@@ -380,8 +384,9 @@ static int cmd_template_apply(const struct shell *shell, size_t argc, char *argv
 	}
 
 	ret = set_current_template(res.name);
-	if(ret != SUCCESS){
-		shell_fprintf(shell, SHELL_ERROR, "But couldn't update current template value! error %d\n", ret);
+	if (ret != SUCCESS) {
+		shell_fprintf(shell, SHELL_ERROR,
+			      "But couldn't update current template value! error %d\n", ret);
 	}
 	return 0;
 }
@@ -394,10 +399,11 @@ static int cmd_template_set(const struct shell *shell, size_t argc, char *argv[]
 	strcpy(new_template.name, argv[1]);
 	new_template.speed = (uint32_t)strtol(argv[2], NULL, 10);
 	ret = set_template(new_template);
-	if(ret == SUCCESS){
+	if (ret == SUCCESS) {
 		shell_fprintf(shell, SHELL_INFO, "New template created\n");
 	} else {
-		shell_fprintf(shell, SHELL_ERROR, "Error while setting new template, code: %d\n", ret);
+		shell_fprintf(shell, SHELL_ERROR,
+			      "Error while setting new template, code: %d\n", ret);
 	}
 
 	return 0;
@@ -407,10 +413,11 @@ static int cmd_template_clear(const struct shell *shell, size_t argc, char *argv
 {
 	if (argc == 1) {
 		int error = factory_reset();
+
 		if (error == SUCCESS) {
 			shell_fprintf(shell, SHELL_NORMAL, "Templates cleared\n");
 
-		} else if(error == ERR_ERROR_CODE_FROM_ERRNO){
+		} else if (error == ERR_ERROR_CODE_FROM_ERRNO) {
 			shell_fprintf(shell, SHELL_ERROR,
 				"Error code from errno.h, code: %d in line %d",
 				get_errno_error_code(), get_errno_error_line());

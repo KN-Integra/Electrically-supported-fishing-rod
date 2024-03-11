@@ -26,5 +26,5 @@ int factory_reset(void);
 int get_current_template(struct Template *result);
 int set_current_template(char *name);
 
-int get_errno_error_code();
-unsigned int get_errno_error_line();
+int get_errno_error_code(void);
+unsigned int get_errno_error_line(void);

@@ -216,16 +216,16 @@ void init_pwm_motor_driver(void)
 	for (unsigned int channel = 0; channel < CONFIG_SUPPORTED_CHANNEL_NUMBER; channel++) {
 
 		__ASSERT(device_is_ready(drv_chnls[channel].pwm_motor_driver.dev),
-			       "PWM Driver not ready!");
+			 "PWM Driver not ready!");
 
 		__ASSERT_EVAL((void) pwm_set_pulse_dt(&(drv_chnls[channel].pwm_motor_driver), 0),
-			       int r = pwm_set_pulse_dt(&(drv_chnls[channel].pwm_motor_driver), 0),
-			       !r, "Unable to set PWM!");
+			int r = pwm_set_pulse_dt(&(drv_chnls[channel].pwm_motor_driver), 0),
+			!r, "Unable to set PWM!");
 
-		for(uint8_t pin = 0; pin < 2; ++pin){
+		for (uint8_t pin = 0; pin < 2; ++pin) {
 			__ASSERT(gpio_is_ready_dt(&(drv_chnls[channel].set_dir_pins[pin])),
-				"Direction Pin %d on channel %d not ready!",
-				pin, channel);
+				 "Direction Pin %d on channel %d not ready!",
+				 pin, channel);
 
 			__ASSERT_EVAL((void) gpio_pin_configure_dt(
 							&(drv_chnls[channel].set_dir_pins[pin]),
@@ -239,13 +239,13 @@ void init_pwm_motor_driver(void)
 
 #if defined(CONFIG_BOARD_NRF52840DONGLE_NRF52840)
 		__ASSERT(gpio_is_ready_dt(&out_boot),
-			       "GPIO Boot pin not ready!");
+			 "GPIO Boot pin not ready!");
 #endif
 
 		for (int pin = 0; pin < 2; ++pin) {
 			__ASSERT(gpio_is_ready_dt(&(drv_chnls[channel].enc_pins[pin])),
-				"Encoder Pin %d on channel %d not ready!",
-				pin, channel);
+				 "Encoder Pin %d on channel %d not ready!",
+				 pin, channel);
 
 			__ASSERT_EVAL((void) gpio_pin_configure_dt(
 							&(drv_chnls[channel].enc_pins[pin]),
