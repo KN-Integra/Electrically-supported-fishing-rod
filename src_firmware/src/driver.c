@@ -13,19 +13,19 @@ static const struct DriverVersion driver_ver = {
 	.minor = 0,
 };
 
+// TODO - correct all of the CH0 to actual channel!!!!!!!!
+
 /// temporary debug only variables: - To be deleted after developemnt is finished!
 static uint64_t count_timer;
 static int32_t ret_debug = 100;// DEBUG ONLY
 
 #pragma region InternalFunctions// declarations of internal functions
-static void enc_callback_ch0(const struct device *dev, struct gpio_callback *cb, uint32_t pins);
-#if (CONFIG_SUPPORTED_CHANNEL_NUMBER > 1)
-static void enc_callback_ch1(const struct device *dev, struct gpio_callback *cb, uint32_t pins);
-#endif
+static void enc_callback_wrapper(const struct device *dev, struct gpio_callback *cb, uint32_t pins);
 static int speed_pwm_set(uint32_t value);
 static void update_speed_and_position_continuous(struct k_work *work);
 static void continuous_calculation_timer_handler(struct k_timer *dummy);
-static void enc_callback(enum ChannelNumber chnl);
+static void enc_callback(enum ChannelNumber chnl, enum PinNumber pin);
+static int set_direction_raw(enum MotorDirection direction, enum ChannelNumber chnl);
 #pragma endregion InternalFunctions
 
 /// Unit conversion defines
@@ -48,7 +48,7 @@ struct DriverChannel {
 	const struct gpio_dt_spec set_dir_pins[2];
 	/// enc in
 	const struct gpio_dt_spec enc_pins[2];
-	struct gpio_callback enc_cb[2];
+	struct gpio_callback enc_cb;
 
 	/// ENCODER - variables used for actual speed calculation based on encoder pin and
 	// timer interrupts
@@ -68,7 +68,8 @@ struct DriverChannel {
 
 	const uint32_t max_pos;
 
-	void (*enc_callback_ptr)(const struct device *dev, struct gpio_callback *cb, uint32_t pins);
+	bool prev_val_enc[2];
+	enum MotorDirection actual_dir;
 
 	/// BOOLS - is motor on?
 	bool is_motor_on; // was motor_on function called?
@@ -81,7 +82,7 @@ static struct DriverChannel drv_chnls[CONFIG_SUPPORTED_CHANNEL_NUMBER] = {
 		.set_dir_pins[P1] = GPIO_DT_SPEC_GET(DT_ALIAS(set_dir_p2_ch1), gpios),
 		.enc_pins[P0] = GPIO_DT_SPEC_GET(DT_ALIAS(get_enc_p1_ch1), gpios),
 		.enc_pins[P1] = GPIO_DT_SPEC_GET(DT_ALIAS(get_enc_p2_ch1), gpios),
-		.enc_callback_ptr = &enc_callback_ch0 // TODO - turn all callbacks to one function!
+		.actual_dir = STOPPED
 	}
 };
 
@@ -190,25 +191,40 @@ static void continuous_calculation_timer_handler(struct k_timer *dummy)
 }
 K_TIMER_DEFINE(continuous_calculation_timer, continuous_calculation_timer_handler, NULL);
 #pragma endregion TimerWorkCallback
-
-
-// TODO - turn all encoder callbacks to one function!
 // encoder functions
-static void enc_callback(enum ChannelNumber chnl)
+static void enc_callback(enum ChannelNumber chnl, enum PinNumber pin)
 {
-	drv_chnls[chnl].count_cycles += 1;// TODO - add directionality calculation
-}
-static void enc_callback_ch0(const struct device *dev, struct gpio_callback *cb, uint32_t pins)
-{
-	enc_callback(CH0);
-}
-#if (CONFIG_SUPPORTED_CHANNEL_NUMBER > 1)
-static void enc_callback_ch1(const struct device *dev, struct gpio_callback *cb, uint32_t pins)
-{
-	enc_callback(CH1);
-}
-#endif
+	// TODO - maybe split this callback to two callbacks, for P1 and P0:
+	// what if motor is stuck and hitting one enc. from two directions?
+	// How will speed calculation behave if motor will keep changing position?
+	// (ex. when setting position?)
+	drv_chnls[chnl].count_cycles += 1;
 
+	if (drv_chnls[chnl].actual_mrpm == 0) {
+		drv_chnls[chnl].actual_dir = STOPPED;
+		return;
+	}
+
+	if (pin == P0) {
+		if (drv_chnls[chnl].prev_val_enc[P0] == drv_chnls[chnl].prev_val_enc[P1]) {
+			drv_chnls[chnl].actual_dir = BACKWARD;
+		} else {
+			drv_chnls[chnl].actual_dir = FORWARD;
+		}
+	}
+}
+static void enc_callback_wrapper(const struct device *dev, struct gpio_callback *cb, uint32_t pins)
+{
+	for (int channel = 0; channel < CONFIG_SUPPORTED_CHANNEL_NUMBER; ++channel) {
+		for (int pin = 0; pin < 2; ++pin) {
+			if (pins & BIT(drv_chnls[channel].enc_pins[pin].pin)) {
+				drv_chnls[channel].prev_val_enc[pin] =
+					gpio_pin_get(dev, drv_chnls[channel].enc_pins[pin].pin);
+				enc_callback(channel, pin);
+			}
+		}
+	}
+}
 
 // init motor
 void init_pwm_motor_driver(void)
@@ -266,13 +282,17 @@ void init_pwm_motor_driver(void)
 				!r, "Unable to configure Encoder pin %d on channel %d!",
 				pin, channel);
 
-			gpio_init_callback(&(drv_chnls[channel].enc_cb[pin]),
-					   *(drv_chnls[channel].enc_callback_ptr),
-					   BIT(drv_chnls[channel].enc_pins[pin].pin));
-			gpio_add_callback(drv_chnls[channel].enc_pins[pin].port,
-					  &(drv_chnls[channel].enc_cb[pin]));
+			drv_chnls[channel].prev_val_enc[pin] =
+				gpio_pin_get(drv_chnls[channel].enc_pins[pin].port,
+							 drv_chnls[channel].enc_pins[pin].pin);
 		}
 
+		gpio_init_callback(&(drv_chnls[channel].enc_cb),
+					enc_callback_wrapper,
+					BIT(drv_chnls[channel].enc_pins[P0].pin) |
+					BIT(drv_chnls[channel].enc_pins[P1].pin));
+		gpio_add_callback(drv_chnls[channel].enc_pins[P0].port,
+					&(drv_chnls[channel].enc_cb));
 	}
 
 	k_timer_start(&continuous_calculation_timer, K_MSEC(CONFIG_ENC_TIMER_PERIOD_MS),
@@ -299,26 +319,10 @@ return_codes_t motor_on(enum MotorDirection direction, enum ChannelNumber chnl)
 	drv_chnls[chnl].speed_control = 0;
 	drv_chnls[chnl].count_cycles = 0;
 	drv_chnls[chnl].old_count_cycles = 0;
-
-	// TODO, combine if and else in some smart way, as they are very similar
-	if (direction == FORWARD) {
-		ret = gpio_pin_set_dt(&(drv_chnls[chnl].set_dir_pins[P0]), 1);
-		if (ret != 0) {
-			return ERR_UNABLE_TO_SET_GPIO;
-		}
-		ret = gpio_pin_set_dt(&(drv_chnls[chnl].set_dir_pins[P1]), 0);
-		if (ret != 0) {
-			return ERR_UNABLE_TO_SET_GPIO;
-		}
-	} else if (direction == BACKWARD) {
-		ret = gpio_pin_set_dt(&(drv_chnls[chnl].set_dir_pins[P0]), 0);
-		if (ret != 0) {
-			return ERR_UNABLE_TO_SET_GPIO;
-		}
-		ret = gpio_pin_set_dt(&(drv_chnls[chnl].set_dir_pins[P1]), 1);
-		if (ret != 0) {
-			return ERR_UNABLE_TO_SET_GPIO;
-		}
+	
+	ret = set_direction_raw(direction, chnl);
+	if(ret != SUCCESS) {
+		return ret;
 	}
 
 	drv_chnls[chnl].is_motor_on = true;
@@ -356,6 +360,41 @@ return_codes_t motor_off(enum ChannelNumber chnl)
 bool get_motor_off_on(enum ChannelNumber chnl)
 {
 	return drv_chnls[chnl].is_motor_on;
+}
+
+static int set_direction_raw(enum MotorDirection direction, enum ChannelNumber chnl){
+	int ret;
+	// TODO, combine if and else in some smart way, as they are very similar
+	if (direction == FORWARD) {
+		ret = gpio_pin_set_dt(&(drv_chnls[chnl].set_dir_pins[P0]), 1);
+		if (ret != 0) {
+			return ERR_UNABLE_TO_SET_GPIO;
+		}
+		ret = gpio_pin_set_dt(&(drv_chnls[chnl].set_dir_pins[P1]), 0);
+		if (ret != 0) {
+			return ERR_UNABLE_TO_SET_GPIO;
+		}
+	} else if (direction == BACKWARD) {
+		ret = gpio_pin_set_dt(&(drv_chnls[chnl].set_dir_pins[P0]), 0);
+		if (ret != 0) {
+			return ERR_UNABLE_TO_SET_GPIO;
+		}
+		ret = gpio_pin_set_dt(&(drv_chnls[chnl].set_dir_pins[P1]), 1);
+		if (ret != 0) {
+			return ERR_UNABLE_TO_SET_GPIO;
+		}
+	}
+	return SUCCESS;
+}
+
+int get_motor_actual_direction(enum ChannelNumber chnl, enum MotorDirection *out_dir) {
+	if (!drv_initialised) {
+		return ERR_NOT_INITIALISED;
+	}
+
+	*out_dir = drv_chnls[chnl].actual_dir;
+
+	return SUCCESS;
 }
 
 static int speed_pwm_set(uint32_t value)

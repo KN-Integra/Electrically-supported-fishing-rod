@@ -442,6 +442,30 @@ static int cmd_template_size(const struct shell *shell, size_t argc, char *argv[
 	return 0;
 }
 
+static int cmd_actual_direction(const struct shell *shell, size_t argc, char *argv[])
+{
+	enum MotorDirection dir;
+	int ret = get_motor_actual_direction(relevant_channel,  &dir);
+	if (ret != SUCCESS) {
+		shell_fprintf(shell, SHELL_ERROR,
+			      "Error while reading channel direction: %d\n", ret);
+		return 0;
+	}
+
+	if (dir == FORWARD) {
+		shell_fprintf(shell, SHELL_INFO, "Motor is spinning forward!\n");
+	} else if (dir == BACKWARD) {
+		shell_fprintf(shell, SHELL_INFO, "Motor is spinning backward!\n");
+	} else if (dir == STOPPED) {
+		shell_fprintf(shell, SHELL_INFO, "Motor is stationary!\n");
+	} else {
+		shell_fprintf(shell, SHELL_ERROR, "Unknown direction value! - %d\n", dir);
+	}
+	return 0;
+}
+
+
+
 SHELL_CMD_ARG_REGISTER(channel, NULL, "Get/set current relevant channel", cmd_channel, 1, 1);
 
 SHELL_CMD_ARG_REGISTER(speed, NULL,
@@ -466,6 +490,9 @@ SHELL_STATIC_SUBCMD_SET_CREATE(sub_template,
 );
 
 SHELL_CMD_REGISTER(template, &sub_template, "get/apply/create speed template", NULL);
+
+SHELL_CMD_REGISTER(actual_direction, NULL, "get motor actual spinning direction",
+		   cmd_actual_direction);
 
 
 #if defined(CONFIG_BOARD_NRF52840DONGLE_NRF52840)
