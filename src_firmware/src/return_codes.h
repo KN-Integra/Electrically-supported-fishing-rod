@@ -1,3 +1,8 @@
+/* SPDX-License-Identifier: Apache-2.0
+ *
+ * Copyright (c) 2024 Maciej Baczmanski, Michal Kawiak, Jakub Mazur
+ */
+
 enum error_codes {
 	SUCCESS = 0,
 
