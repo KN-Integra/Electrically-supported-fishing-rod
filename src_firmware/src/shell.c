@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include "driver.h"
 #include "storage.h"
+#include "return_codes.h"
 
 
 enum ChannelNumber relevant_channel = CH0;
@@ -32,6 +33,7 @@ static int cmd_channel(const struct shell *shell, size_t argc, char *argv[])
 
 static int cmd_speed(const struct shell *shell, size_t argc, char *argv[])
 {
+	// TODO - add reset current template in this function
 	int ret;
 	uint32_t speed_mrpm;
 
@@ -280,13 +282,14 @@ static int cmd_drv_version(const struct shell *shell, size_t argc, char *argv[])
 static int cmd_template_active(const struct shell *shell, size_t argc, char *argv[])
 {
 	struct Template current;
-	int idx = get_current_template(&current);
+	int error = get_current_template(&current);
 
-	if (idx >= 0) {
+	if (error == SUCCESS) {
 		shell_fprintf(shell, SHELL_INFO,
 			      "Name: %-9s speed %d\n", current.name, current.speed);
 	} else {
-		shell_fprintf(shell, SHELL_WARNING, "Template not initialized!\n");
+		shell_fprintf(shell, SHELL_WARNING,
+			      "Error while checking active template: %d!\n", error);
 
 	}
 
@@ -296,11 +299,20 @@ static int cmd_template_active(const struct shell *shell, size_t argc, char *arg
 static int cmd_template_get(const struct shell *shell, size_t argc, char *argv[])
 {
 	uint8_t size = get_template_size();
+	int error;
 
 	if (argc == 1) {
 		struct Template *tmp = (struct Template *)malloc(size * sizeof(struct Template));
 
-		get_templates(tmp);
+		error = get_templates(tmp);
+		if(error == EMPTY_TEMPLATE_LIST){
+			shell_fprintf(shell, SHELL_WARNING, "Template list is empty!\n");
+			return 0;
+		} else if(error != SUCCESS){
+			shell_fprintf(shell, SHELL_WARNING,
+				      "Error while getting template list: %d!\n", error);
+		}
+
 		for (int i = 0; i < size; i++) {
 			shell_fprintf(shell, SHELL_INFO,
 				      "Name: %-9s speed %d\n", tmp[i].name, tmp[i].speed);
@@ -309,9 +321,19 @@ static int cmd_template_get(const struct shell *shell, size_t argc, char *argv[]
 		free(tmp);
 	} else {
 		struct Template res;
+		uint8_t template_id;
 
-		get_template_by_name(argv[1], &res);
-		shell_fprintf(shell, SHELL_INFO, "speed %d\n", res.speed);
+		int error = get_template_and_id_by_name(argv[1], &res, &template_id); // TODO -NULL?
+		if(error == SUCCESS) {
+			shell_fprintf(shell, SHELL_INFO, "speed %d\n", res.speed);
+		} else if(error == COULDNT_FIND_TEMPLATE) {
+			shell_fprintf(shell, SHELL_WARNING, "Couldn't find this template!\n");
+		} else if(error == EMPTY_TEMPLATE_LIST){
+			shell_fprintf(shell, SHELL_WARNING, "Template list is empty!\n");
+		} else {
+			shell_fprintf(shell, SHELL_ERROR,
+				      "Other error during template get! Error Code: %d\n", error);
+		}
 	}
 
 	return 0;
@@ -319,30 +341,60 @@ static int cmd_template_get(const struct shell *shell, size_t argc, char *argv[]
 
 static int cmd_template_apply(const struct shell *shell, size_t argc, char *argv[])
 {
-	uint8_t size = get_template_size();
-	struct Template *tmp = (struct Template *)malloc(size * sizeof(struct Template));
 	struct Template res;
+	uint8_t template_id;
+	int ret;
 
-	get_templates(tmp);
-	get_template_by_name(argv[1], &res);
+	ret = get_template_and_id_by_name(argv[1], &res, &template_id);
+	if(ret == COULDNT_FIND_TEMPLATE) {
+		shell_fprintf(shell, SHELL_WARNING, "Couldn't find template!\n");
+		return 0;
+	} else if(ret != SUCCESS) {
+		shell_fprintf(shell, SHELL_ERROR,
+			      "Other error while searching for saved template: %d!\n", ret);
+		return 0;
+	}
 
-	target_speed_set(res.speed, CH0);
-	set_current_template(res.name);
+	ret = target_speed_set(res.speed, relevant_channel);
+	if (ret == SUCCESS) {
+		shell_fprintf(shell, SHELL_NORMAL, "speed set to: %d on channel %d\n", res.speed, relevant_channel);
 
-	shell_fprintf(shell, SHELL_ERROR, "Speed template:\n");
+	} else if (ret == DESIRED_VALUE_TO_HIGH) {
+		shell_fprintf(shell, SHELL_ERROR,
+			"Desired template speed too high! Desired speed: %d; Max speed: %d\n",
+			res.speed, get_current_max_speed());
+		return 0;
 
-	free(tmp);
+	} else if (ret == UNSUPPORTED_FUNCTION_IN_CURRENT_MODE) {
+		shell_fprintf(shell, SHELL_ERROR,
+			"Function unsupported in current mode!\n");
+		return 0;
+
+	} else {
+		shell_fprintf(shell, SHELL_ERROR, "other error, code: %d\n", ret);
+		return 0;
+	}
+
+	ret = set_current_template(res.name);
+	if(ret != SUCCESS){
+		shell_fprintf(shell, SHELL_ERROR, "But couldn't update current template value! error %d\n", ret);
+	}
 	return 0;
 }
 
 static int cmd_template_set(const struct shell *shell, size_t argc, char *argv[])
 {
 	struct Template new_template;
+	int ret;
 
 	strcpy(new_template.name, argv[1]);
 	new_template.speed = (uint32_t)strtol(argv[2], NULL, 10);
-	set_template(new_template);
-	shell_fprintf(shell, SHELL_INFO, "Done\n");
+	ret = set_template(new_template);
+	if(ret == SUCCESS){
+		shell_fprintf(shell, SHELL_INFO, "Done, new template created\n");
+	} else {
+		shell_fprintf(shell, SHELL_ERROR, "Error while setting new template, code: %d\n", ret);
+	}
 
 	return 0;
 }

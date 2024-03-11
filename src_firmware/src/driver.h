@@ -5,26 +5,6 @@
 
 #include <zephyr/kernel.h>
 
-// TODO - Add ERR before all error codes
-
-/// @brief Error code definitions for motor driver
-enum error_codes {
-	SUCCESS = 0,
-	NOT_INITIALISED = 1,
-
-	PWM_DRV_NOT_READY = 2,
-	GPIO_OUT_DIR_CNTRL_NOT_READY = 3,
-	GPIO_IN_ENC_NOT_READY = 4,
-	GPIO_OUT_BOOT_NOT_READY = 5,
-	UNABLE_TO_SET_PWM_CHNL1 = 6,
-
-	DESIRED_VALUE_TO_HIGH = 7,
-
-	UNABLE_TO_SET_GPIO = 8,
-
-	UNSUPPORTED_FUNCTION_IN_CURRENT_MODE = 9,
-	VALUE_CONVERSION_ERROR = 10
-};
 
 /// @brief motor direction definitions
 enum MotorDirection {

@@ -5,6 +5,7 @@
 #include <zephyr/kernel.h>
 
 #include <zephyr/usb/usb_device.h>
+#include "return_codes.h"
 
 #if defined(CONFIG_BT_SUPPORT)
 #include "ble_gatt_service.h"
@@ -22,13 +23,13 @@
 int main(void)
 {
 	struct Template initial_template;
-	int idx = 0;
+	int error = 0;
 
 	init_pwm_motor_driver();
 	init_storage();
-	idx = get_current_template(&initial_template);
+	error = get_current_template(&initial_template);
 
-	if (idx >= 0) {// TODO - test it, currently broken by init controller.
+	if (error == SUCCESS) {// TODO - test it, currently broken by init controller.
 		target_speed_set(initial_template.speed, CH0);
 	}
 

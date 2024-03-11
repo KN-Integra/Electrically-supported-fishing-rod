@@ -5,6 +5,7 @@
 #include <zephyr/drivers/pwm.h>
 #include <zephyr/types.h>
 #include <string.h>
+#include "return_codes.h"
 #include "driver.h"
 
 static const struct DriverVersion driver_ver = {
@@ -222,7 +223,7 @@ int init_pwm_motor_driver(void)
 		ret = pwm_set_pulse_dt(&(drv_chnls[channel].pwm_motor_driver), 0);
 
 		if (ret != 0) {
-			return UNABLE_TO_SET_PWM_CHNL1;
+			return UNABLE_TO_SET_PWM;
 		}
 
 
@@ -375,7 +376,7 @@ static int speed_pwm_set(uint32_t value)
 
 	ret = pwm_set_pulse_dt(&(drv_chnls[CH0].pwm_motor_driver), w);
 	if (ret != 0) {
-		return UNABLE_TO_SET_PWM_CHNL1;
+		return UNABLE_TO_SET_PWM;
 	}
 
 	return SUCCESS;
