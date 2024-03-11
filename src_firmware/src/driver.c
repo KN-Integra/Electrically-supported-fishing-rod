@@ -210,61 +210,66 @@ static void enc_callback_ch1(const struct device *dev, struct gpio_callback *cb,
 
 
 // init motor
-int init_pwm_motor_driver(void)
+void init_pwm_motor_driver(void)
 {
-	int ret;
 
 	for (unsigned int channel = 0; channel < CONFIG_SUPPORTED_CHANNEL_NUMBER; channel++) {
 
-		if (!device_is_ready(drv_chnls[channel].pwm_motor_driver.dev)) {
-			return ERR_PWM_DRV_NOT_READY;
-		}
+		__ASSERT(device_is_ready(drv_chnls[channel].pwm_motor_driver.dev),
+			       "PWM Driver not ready!");
 
-		ret = pwm_set_pulse_dt(&(drv_chnls[channel].pwm_motor_driver), 0);
+		__ASSERT_EVAL((void) pwm_set_pulse_dt(&(drv_chnls[channel].pwm_motor_driver), 0),
+			       int r = pwm_set_pulse_dt(&(drv_chnls[channel].pwm_motor_driver), 0),
+			       !r, "Unable to set PWM!");
 
-		if (ret != 0) {
-			return ERR_UNABLE_TO_SET_PWM;
-		}
+		for(uint8_t pin = 0; pin < 2; ++pin){
+			__ASSERT(gpio_is_ready_dt(&(drv_chnls[channel].set_dir_pins[pin])),
+				"Direction Pin %d on channel %d not ready!",
+				pin, channel);
 
-
-		if (!gpio_is_ready_dt(&(drv_chnls[channel].set_dir_pins[P0]))) {
-			return ERR_GPIO_OUT_DIR_CNTRL_NOT_READY;
-		}
-
-		ret = gpio_pin_configure_dt(&(drv_chnls[channel].set_dir_pins[P0]),
-					    GPIO_OUTPUT_LOW);
-		if (ret != 0) {
-			return ERR_UNABLE_TO_SET_GPIO;
-		}
-
-		// TODO - move to function
-		if (!gpio_is_ready_dt(&(drv_chnls[channel].set_dir_pins[P1]))) {
-			return ERR_GPIO_OUT_DIR_CNTRL_NOT_READY;
-		}
-		ret = gpio_pin_configure_dt(&(drv_chnls[channel].set_dir_pins[P1]),
-					    GPIO_OUTPUT_LOW);
-
-
-		if (ret != 0) {
-			return ERR_UNABLE_TO_SET_GPIO;
+			__ASSERT_EVAL((void) gpio_pin_configure_dt(
+							&(drv_chnls[channel].set_dir_pins[pin]),
+							GPIO_OUTPUT_LOW),
+				int r = gpio_pin_configure_dt(
+							&(drv_chnls[channel].set_dir_pins[pin]),
+							GPIO_OUTPUT_LOW),
+				!r, "Unable to configure direction Pin %d on channel %d!",
+				pin, channel);
 		}
 
 #if defined(CONFIG_BOARD_NRF52840DONGLE_NRF52840)
-		if (!gpio_is_ready_dt(&out_boot)) {
-			return ERR_GPIO_OUT_BOOT_NOT_READY;
-		}
+		__ASSERT(gpio_is_ready_dt(&out_boot),
+			       "GPIO Boot pin not ready!");
 #endif
 
-		for (int i = 0; i < 2; ++i) {
-			ret = gpio_pin_configure_dt(&(drv_chnls[channel].enc_pins[i]), GPIO_INPUT);
-			ret = gpio_pin_interrupt_configure_dt(&(drv_chnls[channel].enc_pins[i]),
-							      GPIO_INT_EDGE_BOTH);
-			gpio_init_callback(&(drv_chnls[channel].enc_cb[i]),
+		for (int pin = 0; pin < 2; ++pin) {
+			__ASSERT(gpio_is_ready_dt(&(drv_chnls[channel].enc_pins[pin])),
+				"Encoder Pin %d on channel %d not ready!",
+				pin, channel);
+
+			__ASSERT_EVAL((void) gpio_pin_configure_dt(
+							&(drv_chnls[channel].enc_pins[pin]),
+							GPIO_INPUT),
+				int r = gpio_pin_configure_dt(
+							&(drv_chnls[channel].enc_pins[pin]),
+							GPIO_INPUT),
+				!r, "Unable to configure Encoder pin %d on channel %d!",
+				pin, channel);
+
+			__ASSERT_EVAL((void) gpio_pin_interrupt_configure_dt(
+							&(drv_chnls[channel].enc_pins[pin]),
+							GPIO_INT_EDGE_BOTH),
+				int r = gpio_pin_interrupt_configure_dt(
+							&(drv_chnls[channel].enc_pins[pin]),
+							GPIO_INT_EDGE_BOTH),
+				!r, "Unable to configure Encoder pin %d on channel %d!",
+				pin, channel);
+
+			gpio_init_callback(&(drv_chnls[channel].enc_cb[pin]),
 					   *(drv_chnls[channel].enc_callback_ptr),
-					   BIT(drv_chnls[channel].enc_pins[i].pin));
-			gpio_add_callback(drv_chnls[channel].enc_pins[i].port,
-					  &(drv_chnls[channel].enc_cb[i]));
-			// TODO - ret error checking!!
+					   BIT(drv_chnls[channel].enc_pins[pin].pin));
+			gpio_add_callback(drv_chnls[channel].enc_pins[pin].port,
+					  &(drv_chnls[channel].enc_cb[pin]));
 		}
 
 	}
@@ -273,8 +278,6 @@ int init_pwm_motor_driver(void)
 		      K_MSEC(CONFIG_ENC_TIMER_PERIOD_MS));
 
 	drv_initialised = true;
-
-	return SUCCESS;
 }
 
 int motor_on(enum MotorDirection direction, enum ChannelNumber chnl)
