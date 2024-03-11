@@ -13,8 +13,6 @@ struct Template {
 // in template), so that last template will load on startup (will it kill NVM?)
 // TODO - another new, simplier feature - quick command that saves current setup to template.
 // TODO - docstrings and order of functions
-// TODO - add posibility to get actual error codes from errno.h library
-// (more advanced error management)
 
 int get_templates(struct Template *templates);
 int get_template_and_id_by_name(char *name, struct Template *result, uint8_t *out_id);
@@ -27,3 +25,6 @@ int factory_reset(void);
 
 int get_current_template(struct Template *result);
 int set_current_template(char *name);
+
+int get_errno_error_code();
+unsigned int get_errno_error_line();

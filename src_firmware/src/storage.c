@@ -28,6 +28,22 @@ static char current_template[CONFIG_TEMPLATE_NAME_SIZE];
 
 static bool initialized;
 
+#pragma region ErrorManagement
+static int errno_error_code;
+static unsigned int errnor_error_line;
+
+static void handle_errno_error(int error, unsigned int line_no){
+	errno_error_code = error;
+	errnor_error_line = line_no;
+}
+int get_errno_error_code(){
+	return errno_error_code;
+}
+unsigned int get_errno_error_line(){
+	return errnor_error_line;
+}
+#pragma endregion ErrorManagement
+
 void init_storage(void)
 {
 	int rc = 0;
@@ -84,6 +100,7 @@ int set_template(struct Template new_template)
 		error_write = nvs_write(&fs, idx + TEMPLATES_START_ID, // write new template
 				&new_template, sizeof(struct Template));
 		if(error_write < 0) {
+			handle_errno_error(error_write, __LINE__);
 			return ERR_ERROR_CODE_FROM_ERRNO_DURING_NVS_WRITE;
 		}
 		if(error_write == 0) {
@@ -100,6 +117,7 @@ int set_template(struct Template new_template)
 				&new_template, sizeof(struct Template));
 
 		if(error_write < 0) {
+			handle_errno_error(error_write, __LINE__);
 			return ERR_ERROR_CODE_FROM_ERRNO_DURING_NVS_WRITE;
 		}
 		// if(error_write == 0) {
@@ -110,6 +128,7 @@ int set_template(struct Template new_template)
 		error_write = nvs_write(&fs, ALLOC_SIZE_ID, &alloc_size, sizeof(uint8_t));
 
 		if(error_write < 0) {
+			handle_errno_error(error_write, __LINE__);
 			return ERR_ERROR_CODE_FROM_ERRNO_DURING_NVS_WRITE;
 		}
 		// if(error_write == 0) {
@@ -138,6 +157,7 @@ int get_templates(struct Template *templates)
 			       &(templates[i]), sizeof(struct Template));
 
 		if(error < 0) {
+			handle_errno_error(error, __LINE__);
 			return ERR_ERROR_CODE_FROM_ERRNO_DURING_NVS_READ;
 		}
 		if(error == 0) {
@@ -162,6 +182,7 @@ int get_template_and_id_by_name(char *name, struct Template *result, uint8_t *ou
 		error = nvs_read(&fs, i + TEMPLATES_START_ID, result, sizeof(struct Template));
 		if (strcmp(name, result->name) == 0) {
 			if(error < 0) {
+				handle_errno_error(error, __LINE__);
 				return ERR_ERROR_CODE_FROM_ERRNO_DURING_NVS_READ;
 			}
 			if(error == 0) {
@@ -202,6 +223,7 @@ int set_current_template(char *name)
 		  CONFIG_TEMPLATE_NAME_SIZE * sizeof(char));
 
 	if(error < 0) {
+		handle_errno_error(error, __LINE__);
 		return ERR_ERROR_CODE_FROM_ERRNO_DURING_NVS_WRITE;
 	}
 	if(error == 0) {
@@ -232,6 +254,7 @@ int remove_template_by_name(char *name)
 			error_inside = nvs_read(&fs, alloc_size + TEMPLATES_START_ID - 1,
 						   &last, sizeof(struct Template));
 			if(error < 0) {
+				handle_errno_error(error, __LINE__);
 				return ERR_ERROR_CODE_FROM_ERRNO_DURING_NVS_READ;
 			}
 			if(error == 0) {
@@ -241,6 +264,7 @@ int remove_template_by_name(char *name)
 			error_inside = nvs_write(&fs, idx + TEMPLATES_START_ID,
 							&last, sizeof(struct Template));
 			if(error < 0) {
+				handle_errno_error(error, __LINE__);
 				return ERR_ERROR_CODE_FROM_ERRNO_DURING_NVS_WRITE;
 			}
 			if(error == 0) {
@@ -269,6 +293,7 @@ int factory_reset(void)
 	current_template[0] = '\0';
 	error = nvs_write(&fs, ALLOC_SIZE_ID, &alloc_size, sizeof(uint8_t));
 	if(error < 0) {
+		handle_errno_error(error, __LINE__);
 		return ERR_ERROR_CODE_FROM_ERRNO_DURING_NVS_WRITE;
 	}
 	if(error == 0) {
@@ -279,6 +304,7 @@ int factory_reset(void)
 		  CONFIG_TEMPLATE_NAME_SIZE * sizeof(char));
 
 	if(error < 0) {
+		handle_errno_error(error, __LINE__);
 		return ERR_ERROR_CODE_FROM_ERRNO_DURING_NVS_WRITE;
 	}
 	if(error == 0) {
