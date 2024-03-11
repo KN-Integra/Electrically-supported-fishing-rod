@@ -70,7 +70,7 @@ uint8_t get_template_size(void)
 int set_template(struct Template new_template)
 {
 	if(!initialized) {
-		return NOT_INITIALISED;
+		return ERR_NOT_INITIALISED;
 	}
 
 	struct Template tmp_template;
@@ -84,36 +84,36 @@ int set_template(struct Template new_template)
 		error_write = nvs_write(&fs, idx + TEMPLATES_START_ID, // write new template
 				&new_template, sizeof(struct Template));
 		if(error_write < 0) {
-			return ERROR_CODE_FROM_ERRNO_DURING_NVS_WRITE;
+			return ERR_ERROR_CODE_FROM_ERRNO_DURING_NVS_WRITE;
 		}
 		if(error_write == 0) {
-			return NOTHING_WRITTEN_DURING_NVS_WRITE;
+			return ERR_NOTHING_WRITTEN_DURING_NVS_WRITE;
 		}
 
-	} else if(error_get_template == COULDNT_FIND_TEMPLATE || error_get_template == EMPTY_TEMPLATE_LIST) { // if new index needs to be created
+	} else if(error_get_template == ERR_COULDNT_FIND_TEMPLATE || error_get_template == ERR_EMPTY_TEMPLATE_LIST) { // if new index needs to be created
 
 		if(alloc_size>=254) {
-			return TOO_MANY_TEMPLATES_DEFINED; // TODO - define max amount of templates in kconfig with range 1- 254
+			return ERR_TOO_MANY_TEMPLATES_DEFINED; // TODO - define max amount of templates in kconfig with range 1- 254
 		}
 
 		error_write = nvs_write(&fs, alloc_size + TEMPLATES_START_ID,
 				&new_template, sizeof(struct Template));
 
 		if(error_write < 0) {
-			return ERROR_CODE_FROM_ERRNO_DURING_NVS_WRITE;
+			return ERR_ERROR_CODE_FROM_ERRNO_DURING_NVS_WRITE;
 		}
 		// if(error_write == 0) {
-		// 	return NOTHING_WRITTEN_DURING_NVS_WRITE;
+		// 	return ERR_NOTHING_WRITTEN_DURING_NVS_WRITE;
 		// }
 
 		alloc_size++;
 		error_write = nvs_write(&fs, ALLOC_SIZE_ID, &alloc_size, sizeof(uint8_t));
 
 		if(error_write < 0) {
-			return ERROR_CODE_FROM_ERRNO_DURING_NVS_WRITE;
+			return ERR_ERROR_CODE_FROM_ERRNO_DURING_NVS_WRITE;
 		}
 		// if(error_write == 0) {
-		// 	return NOTHING_WRITTEN_DURING_NVS_WRITE;
+		// 	return ERR_NOTHING_WRITTEN_DURING_NVS_WRITE;
 		// }
 	} else {
 		return error_get_template;
@@ -125,10 +125,10 @@ int set_template(struct Template new_template)
 int get_templates(struct Template *templates)
 {
 	if(!initialized) {
-		return NOT_INITIALISED;
+		return ERR_NOT_INITIALISED;
 	}
 	if (alloc_size == 0) {
-		return EMPTY_TEMPLATE_LIST;
+		return ERR_EMPTY_TEMPLATE_LIST;
 	}
 
 	int error;
@@ -138,10 +138,10 @@ int get_templates(struct Template *templates)
 			       &(templates[i]), sizeof(struct Template));
 
 		if(error < 0) {
-			return ERROR_CODE_FROM_ERRNO_DURING_NVS_READ;
+			return ERR_ERROR_CODE_FROM_ERRNO_DURING_NVS_READ;
 		}
 		if(error == 0) {
-			return NOTHING_READ_DURING_NVS_READ;
+			return ERR_NOTHING_READ_DURING_NVS_READ;
 		}
 	}
 	return SUCCESS;
@@ -150,10 +150,10 @@ int get_templates(struct Template *templates)
 int get_template_and_id_by_name(char *name, struct Template *result, uint8_t *out_id)
 {
 	if(!initialized) {
-		return NOT_INITIALISED;
+		return ERR_NOT_INITIALISED;
 	}
 	if (alloc_size == 0) {
-		return EMPTY_TEMPLATE_LIST;
+		return ERR_EMPTY_TEMPLATE_LIST;
 	}
 
 	int error;
@@ -162,10 +162,10 @@ int get_template_and_id_by_name(char *name, struct Template *result, uint8_t *ou
 		error = nvs_read(&fs, i + TEMPLATES_START_ID, result, sizeof(struct Template));
 		if (strcmp(name, result->name) == 0) {
 			if(error < 0) {
-				return ERROR_CODE_FROM_ERRNO_DURING_NVS_READ;
+				return ERR_ERROR_CODE_FROM_ERRNO_DURING_NVS_READ;
 			}
 			if(error == 0) {
-				return NOTHING_READ_DURING_NVS_READ;
+				return ERR_NOTHING_READ_DURING_NVS_READ;
 			}
 
 			*out_id = i;
@@ -173,13 +173,13 @@ int get_template_and_id_by_name(char *name, struct Template *result, uint8_t *ou
 		}
 	}
 
-	return COULDNT_FIND_TEMPLATE;
+	return ERR_COULDNT_FIND_TEMPLATE;
 }
 
 int get_current_template(struct Template *result)
 {
 	if(!initialized) {
-		return NOT_INITIALISED;
+		return ERR_NOT_INITIALISED;
 	}
 	//TODO - what if speed was set outside of template?
 	//(apply template -> set speed -> get current template)
@@ -191,7 +191,7 @@ int get_current_template(struct Template *result)
 int set_current_template(char *name)
 {
 	if(!initialized) {
-		return NOT_INITIALISED;
+		return ERR_NOT_INITIALISED;
 	}
 	int error;
 
@@ -202,10 +202,10 @@ int set_current_template(char *name)
 		  CONFIG_TEMPLATE_NAME_SIZE * sizeof(char));
 
 	if(error < 0) {
-		return ERROR_CODE_FROM_ERRNO_DURING_NVS_WRITE;
+		return ERR_ERROR_CODE_FROM_ERRNO_DURING_NVS_WRITE;
 	}
 	if(error == 0) {
-		return NOTHING_WRITTEN_DURING_NVS_WRITE;
+		return ERR_NOTHING_WRITTEN_DURING_NVS_WRITE;
 	}
 
 	return SUCCESS;
@@ -214,10 +214,10 @@ int set_current_template(char *name)
 int remove_template_by_name(char *name)
 {
 	if(!initialized) {
-		return NOT_INITIALISED;
+		return ERR_NOT_INITIALISED;
 	}
 	if (alloc_size == 0) {
-		return EMPTY_TEMPLATE_LIST;
+		return ERR_EMPTY_TEMPLATE_LIST;
 	}
 
 	struct Template template_to_remove;
@@ -232,19 +232,19 @@ int remove_template_by_name(char *name)
 			error_inside = nvs_read(&fs, alloc_size + TEMPLATES_START_ID - 1,
 						   &last, sizeof(struct Template));
 			if(error < 0) {
-				return ERROR_CODE_FROM_ERRNO_DURING_NVS_READ;
+				return ERR_ERROR_CODE_FROM_ERRNO_DURING_NVS_READ;
 			}
 			if(error == 0) {
-				return NOTHING_READ_DURING_NVS_READ;
+				return ERR_NOTHING_READ_DURING_NVS_READ;
 			}
 
 			error_inside = nvs_write(&fs, idx + TEMPLATES_START_ID,
 							&last, sizeof(struct Template));
 			if(error < 0) {
-				return ERROR_CODE_FROM_ERRNO_DURING_NVS_WRITE;
+				return ERR_ERROR_CODE_FROM_ERRNO_DURING_NVS_WRITE;
 			}
 			if(error == 0) {
-				return NOTHING_WRITTEN_DURING_NVS_WRITE;
+				return ERR_NOTHING_WRITTEN_DURING_NVS_WRITE;
 			}
 		}
 		alloc_size--;
@@ -261,7 +261,7 @@ int remove_template_by_name(char *name)
 int factory_reset(void)
 {
 	if (alloc_size == 0) {
-		return EMPTY_TEMPLATE_LIST;
+		return ERR_EMPTY_TEMPLATE_LIST;
 	}
 
 	int error;
@@ -269,20 +269,20 @@ int factory_reset(void)
 	current_template[0] = '\0';
 	error = nvs_write(&fs, ALLOC_SIZE_ID, &alloc_size, sizeof(uint8_t));
 	if(error < 0) {
-		return ERROR_CODE_FROM_ERRNO_DURING_NVS_WRITE;
+		return ERR_ERROR_CODE_FROM_ERRNO_DURING_NVS_WRITE;
 	}
 	if(error == 0) {
-		return NOTHING_WRITTEN_DURING_NVS_WRITE;
+		return ERR_NOTHING_WRITTEN_DURING_NVS_WRITE;
 	}
 
 	error = nvs_write(&fs, CURRENT_TEMPLATE_ID, current_template,
 		  CONFIG_TEMPLATE_NAME_SIZE * sizeof(char));
 
 	if(error < 0) {
-		return ERROR_CODE_FROM_ERRNO_DURING_NVS_WRITE;
+		return ERR_ERROR_CODE_FROM_ERRNO_DURING_NVS_WRITE;
 	}
 	if(error == 0) {
-		return NOTHING_WRITTEN_DURING_NVS_WRITE;
+		return ERR_NOTHING_WRITTEN_DURING_NVS_WRITE;
 	}
 
 	return SUCCESS;
