@@ -42,7 +42,7 @@ static int cmd_speed(const struct shell *shell, size_t argc, char *argv[])
 		if (ret == SUCCESS) {
 			shell_fprintf(shell, SHELL_NORMAL, "speed: %d\n", speed_mrpm);
 
-		} else if (ret == NOT_INITIALISED) {
+		} else if (ret == ERR_NOT_INITIALISED) {
 			shell_fprintf(shell, SHELL_ERROR,
 				"driver not initialised, could't get speed!\n");
 
@@ -58,16 +58,16 @@ static int cmd_speed(const struct shell *shell, size_t argc, char *argv[])
 		if (ret == SUCCESS) {
 			shell_fprintf(shell, SHELL_NORMAL, "speed set to: %d\n", speed_mrpm);
 
-		} else if (ret == NOT_INITIALISED) {
+		} else if (ret == ERR_NOT_INITIALISED) {
 			shell_fprintf(shell, SHELL_ERROR,
 				"driver not initialised, could't set speed!\n");
 
-		} else if (ret == DESIRED_VALUE_TO_HIGH) {
+		} else if (ret == ERR_DESIRED_VALUE_TO_HIGH) {
 			shell_fprintf(shell, SHELL_ERROR,
 				"Desired speed to high! Desired speed: %d; Max speed: %d\n",
 				speed_mrpm, get_current_max_speed());
 
-		} else if (ret == UNSUPPORTED_FUNCTION_IN_CURRENT_MODE) {
+		} else if (ret == ERR_UNSUPPORTED_FUNCTION_IN_CURRENT_MODE) {
 			shell_fprintf(shell, SHELL_ERROR,
 				"Function unsupported in current mode!\n");
 
@@ -157,7 +157,7 @@ static int cmd_position(const struct shell *shell, size_t argc, char *argv[])
 		if (ret == SUCCESS) {
 			shell_fprintf(shell, SHELL_NORMAL, "Position: %d\n", position);
 
-		} else if (ret == NOT_INITIALISED) {
+		} else if (ret == ERR_NOT_INITIALISED) {
 			shell_fprintf(shell, SHELL_ERROR,
 				"Driver not initialised, could't get position!\n");
 
@@ -172,15 +172,15 @@ static int cmd_position(const struct shell *shell, size_t argc, char *argv[])
 		if (ret == SUCCESS) {
 			shell_fprintf(shell, SHELL_NORMAL, "Position set to: %d\n", position);
 
-		} else if (ret == NOT_INITIALISED) {
+		} else if (ret == ERR_NOT_INITIALISED) {
 			shell_fprintf(shell, SHELL_ERROR,
 				"Driver not initialised, could't set position!\n");
 
-		} else if (ret == DESIRED_VALUE_TO_HIGH) {
+		} else if (ret == ERR_DESIRED_VALUE_TO_HIGH) {
 			shell_fprintf(shell, SHELL_ERROR,
 				"Desired position to high! Desired: %d. Max: 360\n", position);
 
-		} else if (ret == UNSUPPORTED_FUNCTION_IN_CURRENT_MODE) {
+		} else if (ret == ERR_UNSUPPORTED_FUNCTION_IN_CURRENT_MODE) {
 			shell_fprintf(shell, SHELL_ERROR,
 			"Function unsupported in current mode!\n");
 
@@ -212,7 +212,7 @@ static int cmd_mode(const struct shell *shell, size_t argc, char *argv[])
 				"Conversion error, code: %d\n", ret);
 
 			}
-		} else if (ret == NOT_INITIALISED) {
+		} else if (ret == ERR_NOT_INITIALISED) {
 			shell_fprintf(shell, SHELL_ERROR,
 				"driver not initialised, could't get mode!\n");
 
@@ -232,7 +232,7 @@ static int cmd_mode(const struct shell *shell, size_t argc, char *argv[])
 		if (ret == SUCCESS) {
 			shell_fprintf(shell, SHELL_NORMAL, "mode set to: %s\n", argv[1]);
 
-		} else if (ret == NOT_INITIALISED) {
+		} else if (ret == ERR_NOT_INITIALISED) {
 			shell_fprintf(shell, SHELL_ERROR,
 				"driver not initialised, could't set mode!\n");
 
@@ -305,7 +305,7 @@ static int cmd_template_get(const struct shell *shell, size_t argc, char *argv[]
 		struct Template *tmp = (struct Template *)malloc(size * sizeof(struct Template));
 
 		error = get_templates(tmp);
-		if(error == EMPTY_TEMPLATE_LIST){
+		if(error == ERR_EMPTY_TEMPLATE_LIST){
 			shell_fprintf(shell, SHELL_WARNING, "Template list is empty!\n");
 			return 0;
 		} else if(error != SUCCESS){
@@ -326,9 +326,9 @@ static int cmd_template_get(const struct shell *shell, size_t argc, char *argv[]
 		int error = get_template_and_id_by_name(argv[1], &res, &template_id); // TODO -NULL?
 		if(error == SUCCESS) {
 			shell_fprintf(shell, SHELL_INFO, "speed %d\n", res.speed);
-		} else if(error == COULDNT_FIND_TEMPLATE) {
+		} else if(error == ERR_COULDNT_FIND_TEMPLATE) {
 			shell_fprintf(shell, SHELL_WARNING, "Couldn't find this template!\n");
-		} else if(error == EMPTY_TEMPLATE_LIST){
+		} else if(error == ERR_EMPTY_TEMPLATE_LIST){
 			shell_fprintf(shell, SHELL_WARNING, "Template list is empty!\n");
 		} else {
 			shell_fprintf(shell, SHELL_ERROR,
@@ -346,7 +346,7 @@ static int cmd_template_apply(const struct shell *shell, size_t argc, char *argv
 	int ret;
 
 	ret = get_template_and_id_by_name(argv[1], &res, &template_id);
-	if(ret == COULDNT_FIND_TEMPLATE) {
+	if(ret == ERR_COULDNT_FIND_TEMPLATE) {
 		shell_fprintf(shell, SHELL_WARNING, "Couldn't find template!\n");
 		return 0;
 	} else if(ret != SUCCESS) {
@@ -359,13 +359,13 @@ static int cmd_template_apply(const struct shell *shell, size_t argc, char *argv
 	if (ret == SUCCESS) {
 		shell_fprintf(shell, SHELL_NORMAL, "speed set to: %d on channel %d\n", res.speed, relevant_channel);
 
-	} else if (ret == DESIRED_VALUE_TO_HIGH) {
+	} else if (ret == ERR_DESIRED_VALUE_TO_HIGH) {
 		shell_fprintf(shell, SHELL_ERROR,
 			"Desired template speed too high! Desired speed: %d; Max speed: %d\n",
 			res.speed, get_current_max_speed());
 		return 0;
 
-	} else if (ret == UNSUPPORTED_FUNCTION_IN_CURRENT_MODE) {
+	} else if (ret == ERR_UNSUPPORTED_FUNCTION_IN_CURRENT_MODE) {
 		shell_fprintf(shell, SHELL_ERROR,
 			"Function unsupported in current mode!\n");
 		return 0;

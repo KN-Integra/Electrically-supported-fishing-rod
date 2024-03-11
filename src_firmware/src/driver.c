@@ -217,41 +217,41 @@ int init_pwm_motor_driver(void)
 	for (unsigned int channel = 0; channel < CONFIG_SUPPORTED_CHANNEL_NUMBER; channel++) {
 
 		if (!device_is_ready(drv_chnls[channel].pwm_motor_driver.dev)) {
-			return PWM_DRV_NOT_READY;
+			return ERR_PWM_DRV_NOT_READY;
 		}
 
 		ret = pwm_set_pulse_dt(&(drv_chnls[channel].pwm_motor_driver), 0);
 
 		if (ret != 0) {
-			return UNABLE_TO_SET_PWM;
+			return ERR_UNABLE_TO_SET_PWM;
 		}
 
 
 		if (!gpio_is_ready_dt(&(drv_chnls[channel].set_dir_pins[P0]))) {
-			return GPIO_OUT_DIR_CNTRL_NOT_READY;
+			return ERR_GPIO_OUT_DIR_CNTRL_NOT_READY;
 		}
 
 		ret = gpio_pin_configure_dt(&(drv_chnls[channel].set_dir_pins[P0]),
 					    GPIO_OUTPUT_LOW);
 		if (ret != 0) {
-			return UNABLE_TO_SET_GPIO;
+			return ERR_UNABLE_TO_SET_GPIO;
 		}
 
 		// TODO - move to function
 		if (!gpio_is_ready_dt(&(drv_chnls[channel].set_dir_pins[P1]))) {
-			return GPIO_OUT_DIR_CNTRL_NOT_READY;
+			return ERR_GPIO_OUT_DIR_CNTRL_NOT_READY;
 		}
 		ret = gpio_pin_configure_dt(&(drv_chnls[channel].set_dir_pins[P1]),
 					    GPIO_OUTPUT_LOW);
 
 
 		if (ret != 0) {
-			return UNABLE_TO_SET_GPIO;
+			return ERR_UNABLE_TO_SET_GPIO;
 		}
 
 #if defined(CONFIG_BOARD_NRF52840DONGLE_NRF52840)
 		if (!gpio_is_ready_dt(&out_boot)) {
-			return GPIO_OUT_BOOT_NOT_READY;
+			return ERR_GPIO_OUT_BOOT_NOT_READY;
 		}
 #endif
 
@@ -282,7 +282,7 @@ int motor_on(enum MotorDirection direction, enum ChannelNumber chnl)
 	int ret;
 
 	if (!drv_initialised) {
-		return NOT_INITIALISED;
+		return ERR_NOT_INITIALISED;
 	}
 
 	// TODO - change direction during spinning
@@ -300,20 +300,20 @@ int motor_on(enum MotorDirection direction, enum ChannelNumber chnl)
 	if (direction == FORWARD) {
 		ret = gpio_pin_set_dt(&(drv_chnls[chnl].set_dir_pins[P0]), 1);
 		if (ret != 0) {
-			return UNABLE_TO_SET_GPIO;
+			return ERR_UNABLE_TO_SET_GPIO;
 		}
 		ret = gpio_pin_set_dt(&(drv_chnls[chnl].set_dir_pins[P1]), 0);
 		if (ret != 0) {
-			return UNABLE_TO_SET_GPIO;
+			return ERR_UNABLE_TO_SET_GPIO;
 		}
 	} else if (direction == BACKWARD) {
 		ret = gpio_pin_set_dt(&(drv_chnls[chnl].set_dir_pins[P0]), 0);
 		if (ret != 0) {
-			return UNABLE_TO_SET_GPIO;
+			return ERR_UNABLE_TO_SET_GPIO;
 		}
 		ret = gpio_pin_set_dt(&(drv_chnls[chnl].set_dir_pins[P1]), 1);
 		if (ret != 0) {
-			return UNABLE_TO_SET_GPIO;
+			return ERR_UNABLE_TO_SET_GPIO;
 		}
 	}
 
@@ -325,7 +325,7 @@ int motor_off(enum ChannelNumber chnl)
 	int ret;
 
 	if (!drv_initialised) {
-		return NOT_INITIALISED;
+		return ERR_NOT_INITIALISED;
 	}
 
 	if (!drv_chnls[chnl].is_motor_on) {
@@ -337,17 +337,17 @@ int motor_off(enum ChannelNumber chnl)
 		ret = gpio_pin_set_dt(&(drv_chnls[chnl].set_dir_pins[P0]), 0);
 
 		if (ret != 0) {
-			return UNABLE_TO_SET_GPIO;
+			return ERR_UNABLE_TO_SET_GPIO;
 		}
 		ret = gpio_pin_set_dt(&(drv_chnls[chnl].set_dir_pins[P1]), 0);
 		if (ret != 0) {
-			return UNABLE_TO_SET_GPIO;
+			return ERR_UNABLE_TO_SET_GPIO;
 		}
 		drv_chnls[chnl].is_motor_on = false;
 		return SUCCESS;
 	}
 
-	return NOT_INITIALISED;
+	return ERR_NOT_INITIALISED;
 }
 bool get_motor_off_on(enum ChannelNumber chnl)
 {
@@ -359,11 +359,11 @@ static int speed_pwm_set(uint32_t value)
 	int ret;
 
 	if (!drv_initialised) {
-		return NOT_INITIALISED;
+		return ERR_NOT_INITIALISED;
 	}
 
 	if (value > CONFIG_SPEED_MAX_MRPM) {
-		return DESIRED_VALUE_TO_HIGH;
+		return ERR_DESIRED_VALUE_TO_HIGH;
 	}
 
 	if (drv_chnls[CH0].target_speed_mrpm < CONFIG_SPEED_MAX_MRPM / 10) {
@@ -376,7 +376,7 @@ static int speed_pwm_set(uint32_t value)
 
 	ret = pwm_set_pulse_dt(&(drv_chnls[CH0].pwm_motor_driver), w);
 	if (ret != 0) {
-		return UNABLE_TO_SET_PWM;
+		return ERR_UNABLE_TO_SET_PWM;
 	}
 
 	return SUCCESS;
@@ -384,7 +384,7 @@ static int speed_pwm_set(uint32_t value)
 int target_speed_set(uint32_t value, enum ChannelNumber chnl)
 {
 	if (control_mode != SPEED) {
-		return UNSUPPORTED_FUNCTION_IN_CURRENT_MODE;
+		return ERR_UNSUPPORTED_FUNCTION_IN_CURRENT_MODE;
 	}
 	drv_chnls[chnl].target_speed_mrpm = value;
 	drv_chnls[chnl].count_cycles = 0;
@@ -398,7 +398,7 @@ int speed_get(enum ChannelNumber chnl, uint32_t *value)
 		return SUCCESS;
 	}
 
-	return NOT_INITIALISED;
+	return ERR_NOT_INITIALISED;
 }
 uint32_t speed_target_get(void)
 {
@@ -412,11 +412,11 @@ uint32_t get_current_max_speed(void)
 int target_position_set(uint32_t new_target_position, enum ChannelNumber chnl)
 {
 	if (!drv_initialised) {
-		return NOT_INITIALISED;
+		return ERR_NOT_INITIALISED;
 	}
 
 	if (control_mode != POSITION) {
-		return UNSUPPORTED_FUNCTION_IN_CURRENT_MODE;
+		return ERR_UNSUPPORTED_FUNCTION_IN_CURRENT_MODE;
 	}
 
 	drv_chnls[chnl].target_position = new_target_position;
@@ -425,7 +425,7 @@ int target_position_set(uint32_t new_target_position, enum ChannelNumber chnl)
 int position_get(uint32_t *value, enum ChannelNumber chnl)
 {
 	if (!drv_initialised) {
-		return NOT_INITIALISED;
+		return ERR_NOT_INITIALISED;
 	}
 
 	*value = drv_chnls[chnl].curr_pos;
@@ -435,7 +435,7 @@ int position_get(uint32_t *value, enum ChannelNumber chnl)
 int mode_set(enum ControlModes new_mode)
 {
 	if (!drv_initialised) {
-		return NOT_INITIALISED;
+		return ERR_NOT_INITIALISED;
 	}
 
 	control_mode = new_mode;
@@ -444,7 +444,7 @@ int mode_set(enum ControlModes new_mode)
 int mode_get(enum ControlModes *value)
 {
 	if (!drv_initialised) {
-		return NOT_INITIALISED;
+		return ERR_NOT_INITIALISED;
 	}
 
 	*value = control_mode;
@@ -463,7 +463,7 @@ int get_control_mode_from_string(char *str_control_mode, enum ControlModes *ret_
 		*ret_value = POSITION;
 		return SUCCESS;
 	} else {
-		return VALUE_CONVERSION_ERROR;
+		return ERR_VALUE_CONVERSION_ERROR;
 	}
 }
 
@@ -477,7 +477,7 @@ int get_control_mode_as_string(enum ControlModes control_mode, char **ret_value)
 		*ret_value = "Position";
 		return SUCCESS;
 	} else {
-		return VALUE_CONVERSION_ERROR;
+		return ERR_VALUE_CONVERSION_ERROR;
 	}
 }
 
