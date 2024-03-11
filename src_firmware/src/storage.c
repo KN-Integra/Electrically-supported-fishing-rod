@@ -101,7 +101,7 @@ int set_template(struct Template new_template)
 				&new_template, sizeof(struct Template));
 		if(error_write < 0) {
 			handle_errno_error(error_write, __LINE__);
-			return ERR_ERROR_CODE_FROM_ERRNO_DURING_NVS_WRITE;
+			return ERR_ERROR_CODE_FROM_ERRNO;
 		}
 		if(error_write == 0) {
 			return ERR_NOTHING_WRITTEN_DURING_NVS_WRITE;
@@ -118,7 +118,7 @@ int set_template(struct Template new_template)
 
 		if(error_write < 0) {
 			handle_errno_error(error_write, __LINE__);
-			return ERR_ERROR_CODE_FROM_ERRNO_DURING_NVS_WRITE;
+			return ERR_ERROR_CODE_FROM_ERRNO;
 		}
 		// if(error_write == 0) {
 		// 	return ERR_NOTHING_WRITTEN_DURING_NVS_WRITE;
@@ -129,7 +129,7 @@ int set_template(struct Template new_template)
 
 		if(error_write < 0) {
 			handle_errno_error(error_write, __LINE__);
-			return ERR_ERROR_CODE_FROM_ERRNO_DURING_NVS_WRITE;
+			return ERR_ERROR_CODE_FROM_ERRNO;
 		}
 		// if(error_write == 0) {
 		// 	return ERR_NOTHING_WRITTEN_DURING_NVS_WRITE;
@@ -158,7 +158,7 @@ int get_templates(struct Template *templates)
 
 		if(error < 0) {
 			handle_errno_error(error, __LINE__);
-			return ERR_ERROR_CODE_FROM_ERRNO_DURING_NVS_READ;
+			return ERR_ERROR_CODE_FROM_ERRNO;
 		}
 		if(error == 0) {
 			return ERR_NOTHING_READ_DURING_NVS_READ;
@@ -183,7 +183,7 @@ int get_template_and_id_by_name(char *name, struct Template *result, uint8_t *ou
 		if (strcmp(name, result->name) == 0) {
 			if(error < 0) {
 				handle_errno_error(error, __LINE__);
-				return ERR_ERROR_CODE_FROM_ERRNO_DURING_NVS_READ;
+				return ERR_ERROR_CODE_FROM_ERRNO;
 			}
 			if(error == 0) {
 				return ERR_NOTHING_READ_DURING_NVS_READ;
@@ -224,7 +224,7 @@ int set_current_template(char *name)
 
 	if(error < 0) {
 		handle_errno_error(error, __LINE__);
-		return ERR_ERROR_CODE_FROM_ERRNO_DURING_NVS_WRITE;
+		return ERR_ERROR_CODE_FROM_ERRNO;
 	}
 	if(error == 0) {
 		return ERR_NOTHING_WRITTEN_DURING_NVS_WRITE;
@@ -255,7 +255,7 @@ int remove_template_by_name(char *name)
 						   &last, sizeof(struct Template));
 			if(error < 0) {
 				handle_errno_error(error, __LINE__);
-				return ERR_ERROR_CODE_FROM_ERRNO_DURING_NVS_READ;
+				return ERR_ERROR_CODE_FROM_ERRNO;
 			}
 			if(error == 0) {
 				return ERR_NOTHING_READ_DURING_NVS_READ;
@@ -265,7 +265,7 @@ int remove_template_by_name(char *name)
 							&last, sizeof(struct Template));
 			if(error < 0) {
 				handle_errno_error(error, __LINE__);
-				return ERR_ERROR_CODE_FROM_ERRNO_DURING_NVS_WRITE;
+				return ERR_ERROR_CODE_FROM_ERRNO;
 			}
 			if(error == 0) {
 				return ERR_NOTHING_WRITTEN_DURING_NVS_WRITE;
@@ -294,7 +294,7 @@ int factory_reset(void)
 	error = nvs_write(&fs, ALLOC_SIZE_ID, &alloc_size, sizeof(uint8_t));
 	if(error < 0) {
 		handle_errno_error(error, __LINE__);
-		return ERR_ERROR_CODE_FROM_ERRNO_DURING_NVS_WRITE;
+		return ERR_ERROR_CODE_FROM_ERRNO;
 	}
 	if(error == 0) {
 		return ERR_NOTHING_WRITTEN_DURING_NVS_WRITE;
@@ -305,7 +305,7 @@ int factory_reset(void)
 
 	if(error < 0) {
 		handle_errno_error(error, __LINE__);
-		return ERR_ERROR_CODE_FROM_ERRNO_DURING_NVS_WRITE;
+		return ERR_ERROR_CODE_FROM_ERRNO;
 	}
 	if(error == 0) {
 		return ERR_NOTHING_WRITTEN_DURING_NVS_WRITE;
