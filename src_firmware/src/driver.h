@@ -39,8 +39,7 @@ enum PinNumber {
 
 /// @brief Function initalising PWMs (drivers) and GPIOs.
 /// @param speed_max_mrpm - max speed defined in mili RPM
-/// @return error defined in error_codes
-int init_pwm_motor_driver(void);
+void init_pwm_motor_driver(void);
 
 /// @brief Set new desired (targeted) speed AND set the pwm
 /// @param value - value in mili RPM
