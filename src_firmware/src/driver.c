@@ -110,11 +110,18 @@ static void update_speed_and_position_continuous(struct k_work *work)
 			diff = drv_chnls[chnl].count_cycles - drv_chnls[chnl].old_count_cycles;
 		}
 		drv_chnls[chnl].old_count_cycles = drv_chnls[chnl].count_cycles;
+		enum MotorDirection dir;
+		int8_t pos_diff_modifier = 1;
+
+		get_motor_actual_direction(chnl, &dir);
+		if (dir == BACKWARD){
+			pos_diff_modifier = -1;
+		}
 
 		// calculate actual position
 		int32_t pos_diff = (diff*drv_chnls[chnl].max_pos) /
 				   (CONFIG_ENC_STEPS_PER_ROTATION * CONFIG_GEARSHIFT_RATIO);
-		int32_t new_pos = (int32_t)drv_chnls[CH0].curr_pos + pos_diff;
+		int32_t new_pos = (int32_t)drv_chnls[chnl].curr_pos + pos_diff_modifier * pos_diff;
 
 		if (new_pos <= 0) {
 			drv_chnls[chnl].curr_pos = (uint32_t)(drv_chnls[chnl].max_pos + new_pos);
@@ -154,28 +161,36 @@ static void update_speed_and_position_continuous(struct k_work *work)
 
 				ret = speed_pwm_set(drv_chnls[chnl].speed_control);
 			} else if (control_mode == POSITION) {
-				// TODO - it is temporary version of position control -
-				// - will be improved!
-				// TODO - control it in BOTH direction, currently
-				// it goes only forward
 				drv_chnls[chnl].position_delta = drv_chnls[chnl].target_position -
 								 drv_chnls[chnl].curr_pos;
 
+				bool is_target_behind = false;
 				if (drv_chnls[chnl].position_delta < 0) {
 					drv_chnls[chnl].position_delta =
 					-drv_chnls[chnl].position_delta;
+					is_target_behind = true;
 				}
 
+				// Set proper spinning direction
+				if (drv_chnls[chnl].position_delta /
+					CONFIG_POSITION_CONTROL_MODIFIER
+						< 180) {
+
+					if(!is_target_behind) set_direction_raw(FORWARD, chnl);
+					else set_direction_raw(BACKWARD, chnl);
+				} else {
+					if(!is_target_behind) set_direction_raw(BACKWARD, chnl);
+					else set_direction_raw(FORWARD, chnl);
+				}
+
+				// TODO - it has issues with keeping "0" position, improve!
 				if (drv_chnls[chnl].position_delta >
-						drv_chnls[CH0].max_pos/(36)) {
-					//36 - control precision, TODO -
-					// possibly decrease the value?
-					drv_chnls[chnl].target_speed_mrpm = CONFIG_SPEED_MAX_MRPM/3;
-					/*
-					 * CONFIG_SPEED_MAX_MRPM/3 is temporary,
-					 * TODO - make this value dependent on position_delta,
-					 * further the target, move faster
-					 */
+						(drv_chnls[chnl].max_pos) /
+						(CONFIG_POS_CONTROL_PRECISION_MODIFIER)) {
+					// TODO - add actual PID! (instead of slow spinning!)
+					drv_chnls[chnl].target_speed_mrpm =
+						CONFIG_SPEED_MAX_MRPM /
+						CONFIG_POS_CONTROL_MIN_SPEED_MODIFIER;
 				} else {
 					drv_chnls[chnl].target_speed_mrpm = 0;
 				}
@@ -319,7 +334,7 @@ return_codes_t motor_on(enum MotorDirection direction, enum ChannelNumber chnl)
 	drv_chnls[chnl].speed_control = 0;
 	drv_chnls[chnl].count_cycles = 0;
 	drv_chnls[chnl].old_count_cycles = 0;
-	
+
 	ret = set_direction_raw(direction, chnl);
 	if(ret != SUCCESS) {
 		return ret;

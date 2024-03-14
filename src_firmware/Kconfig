@@ -24,11 +24,6 @@ config SPEED_MAX_MRPM
 	int "Max motor speed from motor documentation (in mili RPM - one thousands of RPM)"
 	default 67000
 
-config POSITION_CONTROL_MODIFIER
-	int "Accuracy of position control (if value is 10 position is controlled in deca-degrees; \
-	     if 100 - centi-degrees etc.)"
-	default 10
-
 config UART_SHELL_SUPPORT
 	bool "Support for communication using uart shell - set to one to communicate via shell \
 	      over uart, 0 for disabled communication"
@@ -54,6 +49,21 @@ config KP_NUMERATOR_FOR_SPEED
 config KP_DENOMINATOR_FOR_SPEED
 	int "proportional part denominator for speed control"
 	default 10
+
+config POSITION_CONTROL_MODIFIER
+	int "Accuracy of position control (if value is 10 position is controlled in deca-degrees; \
+	     if 100 - centi-degrees etc.)"
+	default 100
+
+config POS_CONTROL_MIN_SPEED_MODIFIER
+	int "divider for minimal speed during position control. \
+	     Max speed is taken and divied by this value"
+	default 8
+
+config POS_CONTROL_PRECISION_MODIFIER
+	int "divider for precision of position control.\
+	     Ex. 720 means that precision is 360/720 = +-0.5 degree"
+	default 720
 
 
 config USB_DEVICE_VID
