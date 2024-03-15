@@ -10,7 +10,7 @@
 
 static const struct DriverVersion driver_ver = {
 	.major = 2,
-	.minor = 0,
+	.minor = 2,
 };
 
 // TODO - correct all of the CH0 to actual channel!!!!!!!!
