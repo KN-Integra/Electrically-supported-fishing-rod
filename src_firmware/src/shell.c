@@ -446,6 +446,7 @@ static int cmd_actual_direction(const struct shell *shell, size_t argc, char *ar
 {
 	enum MotorDirection dir;
 	int ret = get_motor_actual_direction(relevant_channel,  &dir);
+
 	if (ret != SUCCESS) {
 		shell_fprintf(shell, SHELL_ERROR,
 			      "Error while reading channel direction: %d\n", ret);

@@ -73,7 +73,7 @@ bool get_motor_off_on(enum ChannelNumber chnl);
 /// @brief getter for spinning direction calculated based on encoder feedback
 /// @param  channel number for direction
 /// @param  output - spinning direction
-/// @return return code
+/// @return code defined in error_codes
 int get_motor_actual_direction(enum ChannelNumber chnl, enum MotorDirection *out_dir);
 
 /// @brief Simple getter for firmware software version

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: Apache-2.0get
 // Copyright (c) 2023 Maciej Baczmanski, Michal Kawiak, Jakub Mazur
 
 #include <zephyr/drivers/gpio.h>
@@ -13,7 +13,7 @@ static const struct DriverVersion driver_ver = {
 	.minor = 2,
 };
 
-// TODO - correct all of the CH0 to actual channel!!!!!!!!
+// TODO - correct all of the CH0 to actual channel!!
 
 /// temporary debug only variables: - To be deleted after developemnt is finished!
 static uint64_t count_timer;
@@ -74,6 +74,7 @@ struct DriverChannel {
 	/// BOOLS - is motor on?
 	bool is_motor_on; // was motor_on function called?
 };
+
 static struct DriverChannel drv_chnls[CONFIG_SUPPORTED_CHANNEL_NUMBER] = {
 	{
 		.max_pos = 360u * CONFIG_POSITION_CONTROL_MODIFIER,
@@ -114,7 +115,7 @@ static void update_speed_and_position_continuous(struct k_work *work)
 		int8_t pos_diff_modifier = 1;
 
 		get_motor_actual_direction(chnl, &dir);
-		if (dir == BACKWARD){
+		if (dir == BACKWARD) {
 			pos_diff_modifier = -1;
 		}
 
@@ -176,11 +177,15 @@ static void update_speed_and_position_continuous(struct k_work *work)
 					CONFIG_POSITION_CONTROL_MODIFIER
 						< 180) {
 
-					if(!is_target_behind) set_direction_raw(FORWARD, chnl);
-					else set_direction_raw(BACKWARD, chnl);
+					if (!is_target_behind)
+						set_direction_raw(FORWARD, chnl);
+					else
+						set_direction_raw(BACKWARD, chnl);
 				} else {
-					if(!is_target_behind) set_direction_raw(BACKWARD, chnl);
-					else set_direction_raw(FORWARD, chnl);
+					if (!is_target_behind)
+						set_direction_raw(BACKWARD, chnl);
+					else
+						set_direction_raw(FORWARD, chnl);
 				}
 
 				// TODO - it has issues with keeping "0" position, improve!
@@ -206,6 +211,7 @@ static void continuous_calculation_timer_handler(struct k_timer *dummy)
 }
 K_TIMER_DEFINE(continuous_calculation_timer, continuous_calculation_timer_handler, NULL);
 #pragma endregion TimerWorkCallback
+
 // encoder functions
 static void enc_callback(enum ChannelNumber chnl, enum PinNumber pin)
 {
@@ -228,6 +234,7 @@ static void enc_callback(enum ChannelNumber chnl, enum PinNumber pin)
 		}
 	}
 }
+
 static void enc_callback_wrapper(const struct device *dev, struct gpio_callback *cb, uint32_t pins)
 {
 	for (int channel = 0; channel < CONFIG_SUPPORTED_CHANNEL_NUMBER; ++channel) {
@@ -244,7 +251,6 @@ static void enc_callback_wrapper(const struct device *dev, struct gpio_callback 
 // init motor
 void init_pwm_motor_driver(void)
 {
-
 	for (unsigned int channel = 0; channel < CONFIG_SUPPORTED_CHANNEL_NUMBER; channel++) {
 
 		__ASSERT(device_is_ready(drv_chnls[channel].pwm_motor_driver.dev),
@@ -336,7 +342,8 @@ return_codes_t motor_on(enum MotorDirection direction, enum ChannelNumber chnl)
 	drv_chnls[chnl].old_count_cycles = 0;
 
 	ret = set_direction_raw(direction, chnl);
-	if(ret != SUCCESS) {
+
+	if (ret != SUCCESS) {
 		return ret;
 	}
 
@@ -372,12 +379,14 @@ return_codes_t motor_off(enum ChannelNumber chnl)
 
 	return ERR_NOT_INITIALISED;
 }
+
 bool get_motor_off_on(enum ChannelNumber chnl)
 {
 	return drv_chnls[chnl].is_motor_on;
 }
 
-static int set_direction_raw(enum MotorDirection direction, enum ChannelNumber chnl){
+static int set_direction_raw(enum MotorDirection direction, enum ChannelNumber chnl)
+{
 	int ret;
 	// TODO, combine if and else in some smart way, as they are very similar
 	if (direction == FORWARD) {
@@ -402,7 +411,8 @@ static int set_direction_raw(enum MotorDirection direction, enum ChannelNumber c
 	return SUCCESS;
 }
 
-int get_motor_actual_direction(enum ChannelNumber chnl, enum MotorDirection *out_dir) {
+int get_motor_actual_direction(enum ChannelNumber chnl, enum MotorDirection *out_dir)
+{
 	if (!drv_initialised) {
 		return ERR_NOT_INITIALISED;
 	}
