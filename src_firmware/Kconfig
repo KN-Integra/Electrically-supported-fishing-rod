@@ -18,7 +18,7 @@ config ENC_TIMER_PERIOD_MS
 
 config TEMPLATE_NAME_SIZE
 	int "Max size of template's name in characters"
-	default 10
+	default 12
 
 config SPEED_MAX_MRPM
 	int "Max motor speed from motor documentation (in mili RPM - one thousands of RPM)"

@@ -189,11 +189,14 @@ return_codes_t get_template_and_id_by_name(char *name, struct Template *result, 
 				handle_errno_error(error, __LINE__);
 				return ERR_ERROR_CODE_FROM_ERRNO;
 			}
+
 			if (error == 0) {
 				return ERR_NOTHING_READ_DURING_NVS_READ;
 			}
 
-			*out_id = i;
+			if (out_id != NULL) {
+				*out_id = i;
+			}
 			return SUCCESS;
 		}
 	}
