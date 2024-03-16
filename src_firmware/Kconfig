@@ -55,22 +55,23 @@ config KP_DENOMINATOR_FOR_SPEED
 	int "proportional part denominator for speed control"
 	default 10
 
-if UART_SHELL_SUPPORT
+
 config USB_DEVICE_VID
 	default 0x1915
+	depends on UART_SHELL_SUPPORT
 
 config USB_DEVICE_PID
 	default 0x0000
-endif
+	depends on UART_SHELL_SUPPORT
 
-if BT_SUPPORT
-# TODO - Changing values of this configs in prj.conf might not work. - TEST IT AND REPAIR!
 config BT_DEVICE_NAME
+	string "BLE device name"
 	default "Motor Controller"
+	depends on BT_SUPPORT
 
 config BT_DEVICE_APPEARANCE
 	default 833
-endif
+	depends on BT_SUPPORT
 
 endmenu
 
