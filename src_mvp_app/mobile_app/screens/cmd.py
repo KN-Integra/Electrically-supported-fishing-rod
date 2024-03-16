@@ -12,9 +12,6 @@ class CmdScreen(Screen):
         print("Entered cmd screen")
         return super().on_enter(*args)
 
-    def initialize_device(self):
-        asyncio.create_task(self.app.BLEClient.cmd_init())
-
     def speed_get(self):
         speed_task = asyncio.create_task(self.app.BLEClient.cmd_speed_get())
         speed_task.add_done_callback(self.speed_get_callback)
