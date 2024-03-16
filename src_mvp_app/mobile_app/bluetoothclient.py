@@ -4,6 +4,7 @@ import logging
 from bleak import BleakScanner, BleakClient, BLEDevice, BleakGATTCharacteristic
 from kivy.clock import Clock
 from functools import partial
+from dataclasses import dataclass
 
 CMD_BOOT_BYTES = b'\x00'
 CMD_SPEED_SET_BYTES = b'\x01'
@@ -19,16 +20,35 @@ READ_HW_VERSION_CHARACTERISTIC_UUID = "6e006623-37de-44d4-be45-d1f1fd9385fd"
 
 DEVICE_NAME = "WyndkaTemplates"
 
+@dataclass
+class Template:
+    name: str
+    speed: int
 
-class BluetoothClient():
+    def to_bytes(self):
+        return self.name.encode(encoding="utf-8") + (12-len(self.name))*b'\0' + int.to_bytes(self.speed, length=4, byteorder='big')
+
+@dataclass
+class TemplateList:
+    items: list[Template]
+
+@dataclass
+class TemplatConfig:
+    length: int
+    page_no: int
+    template_count: int
+    text_len: int
+
+class BluetoothClient:
 
     def __init__(self) -> None:
         self.scanner: BleakScanner = BleakScanner()
         self.wyndka_client: BleakClient = None
         self.wyndka: BLEDevice = None
         # TODO: make class Template instead of this filthy dicts
-        self.template_list: dict = dict()
-        self.curr_templ: dict = dict()
+        self.template_list: TemplateList
+        self.template_config: TemplatConfig
+        self.curr_templ: Template
 
     def check_connection(self) -> bool:
         if self.wyndka_client or len(self.template_list.items()):
@@ -90,53 +110,74 @@ class BluetoothClient():
             case _:
                 return (0, 0)
     
-    def get_field_data(self, sd: bytearray, field_no: int, text_len: int)->dict:
+    def get_field_data(self, sd: bytearray, field_no: int, text_len: int)->Template:
         bounds_name = self.calc_bounds_for(0, field_no, text_len)
         bounds_speed = self.calc_bounds_for(1, field_no, text_len)
-        return {"name": sd[bounds_name[0]:bounds_name[1]].split(b'\x00')[0], 
-                "speed": int.from_bytes(sd[bounds_speed[0]:bounds_speed[1]], byteorder='little')
-        }
+        return Template(name=sd[bounds_name[0]:bounds_name[1]].split(b'\x00')[0].decode("utf-8"), 
+                        speed=int.from_bytes(sd[bounds_speed[0]:bounds_speed[1]], byteorder='little')
+        )
     
-    def format_templ_list(self, sd: bytearray)->dict:
+    def save_templ_list(self, sd: bytearray)->None:
         # assuming automatic conversion to int
         count = sd[2]
         text_len = sd[3]
-        return {
-            "length": sd[0],
-            "page_no": sd[1],
-            "template_count": sd[2],
-            "text_len": sd[3],
-            "fields": { i : self.get_field_data(sd, i, text_len)
-                    for i in range(count)
-                }
-            }
+        self.template_config = TemplatConfig(
+            length=sd[0],
+            page_no=sd[1],
+            template_count=sd[2],
+            text_len=sd[3]
+        )
+        self.template_list = [self.get_field_data(sd, i, text_len) for i in range(count)]
 
     async def get_templ_list(self):
         logging.info("Getting speed config data")
         try:
             response = await self.wyndka_client.read_gatt_char(READ_CHARACTERISTIC_TEMPL_LIST_UUID)
             logging.info("received speed config data")
-            self.template_list = self.format_templ_list(response)
+            self.save_templ_list(response)
             logging.info(self.template_list)
         except Exception as e:
             print(e)
 
     @staticmethod
     async def format_templ(tmpl: bytearray, text_len: int, speed_len: int):
-        return {"name": tmpl[0:text_len].split(b'\x00')[0].decode('utf-8'),
-                "speed": int.from_bytes(tmpl[text_len:(text_len+speed_len)], byteorder='little')
-                }
+        return Template(name=str((tmpl[0:text_len].split(b'\x00')[0]).decode('utf-8')),
+                        speed=int.from_bytes(tmpl[text_len:(text_len+speed_len)], byteorder='little')
+        )
 
 
-    async def get_active_templ(self, *args):
+    async def get_active_templ(self, *args)-> Template:
         logging.info("Getting current template")
         try:
             curr_templ = await self.wyndka_client.read_gatt_char(READ_CHARACTERISTIC_TEMPL_ACT_UUID)
-            self.curr_templ = await BluetoothClient.format_templ(curr_templ, self.template_list["text_len"], 4)
+            self.curr_templ = await BluetoothClient.format_templ(curr_templ, self.template_config.text_len, 4)
             logging.info(self.curr_templ)
         except Exception as e:
             print(e)
 
+    async def set_active_template(self, templ: Template):
+        logging.info("setting active template")
+        cmd = CMD_ACT_TMPL + templ.to_bytes()
+        try:
+            await self.wyndka_client.write_gatt_char(WRITE_CMD_CHARACTERISTIC_UUID, cmd, response=False)
+        except Exception as e:
+            logging.error(e)
+
+    async def create_template(self, templ: Template):
+        logging.info("creating new template")
+        cmd = CMD_ADD_TMPL + templ.to_bytes()
+        try:
+            await self.wyndka_client.write_gatt_char(WRITE_CMD_CHARACTERISTIC_UUID, cmd, response=False)
+        except Exception as e:
+            logging.error(e)
+
+    async def delete_template(self, templ: Template):
+        logging.info("creating new template")
+        cmd = CMD_DEL_TMPL + templ.to_bytes()
+        try:
+            await self.wyndka_client.write_gatt_char(WRITE_CMD_CHARACTERISTIC_UUID, cmd, response=False)
+        except Exception as e:
+            logging.error(e)
 
     async def cmd_speed_get(self) -> int:
         speed = None
