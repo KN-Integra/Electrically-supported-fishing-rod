@@ -5,7 +5,6 @@
 #include <zephyr/kernel.h>
 
 #include <zephyr/usb/usb_device.h>
-#include "return_codes.h"
 
 #if defined(CONFIG_BT_SUPPORT)
 #include "ble_gatt_service.h"
@@ -23,7 +22,7 @@
 int main(void)
 {
 	struct Template initial_template;
-	int error = 0;
+	return_codes_t error = SUCCESS;
 
 	init_pwm_motor_driver();
 	init_storage();

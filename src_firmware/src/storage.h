@@ -3,6 +3,8 @@
  * Copyright (c) 2024 Maciej Baczmanski, Jakub Mazur
  */
 
+#include "return_codes.h"
+
 // TODO - make template scallable from KConfig
 // (What should be included in template and what shouldn't)
 struct Template {
@@ -14,17 +16,17 @@ struct Template {
 // TODO - another new, simplier feature - quick command that saves current setup to template.
 // TODO - docstrings and order of functions
 
-int get_templates(struct Template *templates);
-int get_template_and_id_by_name(char *name, struct Template *result, uint8_t *out_id);
-int set_template(struct Template new_template);
+return_codes_t get_templates(struct Template *templates);
+return_codes_t get_template_and_id_by_name(char *name, struct Template *result, uint8_t *out_id);
+return_codes_t set_template(struct Template new_template);
 uint8_t get_template_size(void);
-int remove_template_by_name(char *name);
+return_codes_t remove_template_by_name(char *name);
 
 void init_storage(void);
-int factory_reset(void);
+return_codes_t factory_reset(void);
 
-int get_current_template(struct Template *result);
-int set_current_template(char *name);
+return_codes_t get_current_template(struct Template *result);
+return_codes_t set_current_template(char *name);
 
 int get_errno_error_code(void);
 unsigned int get_errno_error_line(void);

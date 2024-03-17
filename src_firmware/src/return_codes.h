@@ -2,8 +2,9 @@
  *
  * Copyright (c) 2024 Maciej Baczmanski, Michal Kawiak, Jakub Mazur
  */
+#pragma once
 
-enum error_codes {
+typedef enum {
 	SUCCESS = 0,
 
 	// Minor Errors (range 1-15) - Can happen during normal operation
@@ -24,4 +25,4 @@ enum error_codes {
 	ERR_ERROR_CODE_FROM_ERRNO = 20,
 	ERR_NOTHING_WRITTEN_DURING_NVS_WRITE = 21,
 	ERR_NOTHING_READ_DURING_NVS_READ = 22,
-};
+} return_codes_t;

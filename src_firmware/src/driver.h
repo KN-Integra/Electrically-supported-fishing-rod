@@ -4,6 +4,7 @@
  */
 
 #include <zephyr/kernel.h>
+#include "return_codes.h"
 
 
 /// @brief motor direction definitions
@@ -44,21 +45,21 @@ void init_pwm_motor_driver(void);
 /// @brief Set new desired (targeted) speed AND set the pwm
 /// @param value - value in mili RPM
 /// @return error defined in error_codes
-int target_speed_set(uint32_t value, enum ChannelNumber chnl);
+return_codes_t target_speed_set(uint32_t value, enum ChannelNumber chnl);
 
 /// @brief Get current actual speed (from encoders)  - TODO - implement with encoders
 /// @param value - variable to save speed
 /// @return error defined in error_codes
-int speed_get(enum ChannelNumber chnl, uint32_t *value);
+return_codes_t speed_get(enum ChannelNumber chnl, uint32_t *value);
 
 /// @brief Turn motor on in proper direction, without modyfing target speed or set pwm output.
 /// @param direction - FORWARD or BACKWARD
 /// @return error defined in error_codes
-int motor_on(enum MotorDirection direction, enum ChannelNumber chnl);
+return_codes_t motor_on(enum MotorDirection direction, enum ChannelNumber chnl);
 
 /// @brief Turn motor off, without modyfing pwm output
 /// @return error defined in error_codes
-int motor_off(enum ChannelNumber chnl);
+return_codes_t motor_off(enum ChannelNumber chnl);
 
 /// @brief Simple getter for max speed (set by init_pwm_motor_driver)
 /// @return max speed in mili RPM
@@ -80,21 +81,21 @@ uint32_t speed_target_get(void);
 /// @param str_control_mode control mode as string
 /// @param ret_value output - control mode as control mode enum
 /// @return error defined in error_codes
-int get_control_mode_from_string(char *str_control_mode, enum ControlModes *ret_value);
+return_codes_t get_control_mode_from_string(char *str_control_mode, enum ControlModes *ret_value);
 
 /// @brief utility function for converting control mode from enum to string
 /// @param control_mode control mode as enum
 /// @param ret_value output - control mode as string
 /// @return error defined in error_codes
-int get_control_mode_as_string(enum ControlModes control_mode, char **ret_value);
+return_codes_t get_control_mode_as_string(enum ControlModes control_mode, char **ret_value);
 
-int target_position_set(uint32_t new_target_position, enum ChannelNumber chnl);
+return_codes_t target_position_set(uint32_t new_target_position, enum ChannelNumber chnl);
 
-int position_get(uint32_t *value, enum ChannelNumber chnl);
+return_codes_t position_get(uint32_t *value, enum ChannelNumber chnl);
 
-int mode_set(enum ControlModes new_mode);
+return_codes_t mode_set(enum ControlModes new_mode);
 
-int mode_get(enum ControlModes *value);
+return_codes_t mode_get(enum ControlModes *value);
 
 #if defined(CONFIG_BOARD_NRF52840DONGLE_NRF52840)
 /// @brief Enter bootloader mode (in order to flash new software via nRF connect programmer)

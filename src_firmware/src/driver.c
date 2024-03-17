@@ -31,6 +31,7 @@ static void enc_callback(enum ChannelNumber chnl);
 /// Unit conversion defines
 #define MIN_TO_MS 60000
 #define RPM_TO_MRPM 1000
+// TODO - add define for pins per channel
 
 /// CONTROL MODE - whether speed or position is controlled
 static enum ControlModes control_mode = SPEED;
@@ -280,7 +281,7 @@ void init_pwm_motor_driver(void)
 	drv_initialised = true;
 }
 
-int motor_on(enum MotorDirection direction, enum ChannelNumber chnl)
+return_codes_t motor_on(enum MotorDirection direction, enum ChannelNumber chnl)
 {
 	int ret;
 
@@ -323,7 +324,7 @@ int motor_on(enum MotorDirection direction, enum ChannelNumber chnl)
 	drv_chnls[chnl].is_motor_on = true;
 	return SUCCESS;
 }
-int motor_off(enum ChannelNumber chnl)
+return_codes_t motor_off(enum ChannelNumber chnl)
 {
 	int ret;
 
@@ -384,7 +385,7 @@ static int speed_pwm_set(uint32_t value)
 
 	return SUCCESS;
 }
-int target_speed_set(uint32_t value, enum ChannelNumber chnl)
+return_codes_t target_speed_set(uint32_t value, enum ChannelNumber chnl)
 {
 	if (control_mode != SPEED) {
 		return ERR_UNSUPPORTED_FUNCTION_IN_CURRENT_MODE;
@@ -394,7 +395,7 @@ int target_speed_set(uint32_t value, enum ChannelNumber chnl)
 	drv_chnls[chnl].old_count_cycles = 0;
 	return SUCCESS;
 }
-int speed_get(enum ChannelNumber chnl, uint32_t *value)
+return_codes_t speed_get(enum ChannelNumber chnl, uint32_t *value)
 {
 	if (drv_initialised) {
 		*value = drv_chnls[chnl].actual_mrpm; // TODO - get speed from encoder
@@ -412,7 +413,7 @@ uint32_t get_current_max_speed(void)
 	return CONFIG_SPEED_MAX_MRPM;
 }
 
-int target_position_set(uint32_t new_target_position, enum ChannelNumber chnl)
+return_codes_t target_position_set(uint32_t new_target_position, enum ChannelNumber chnl)
 {
 	if (!drv_initialised) {
 		return ERR_NOT_INITIALISED;
@@ -425,7 +426,7 @@ int target_position_set(uint32_t new_target_position, enum ChannelNumber chnl)
 	drv_chnls[chnl].target_position = new_target_position;
 	return SUCCESS;
 }
-int position_get(uint32_t *value, enum ChannelNumber chnl)
+return_codes_t position_get(uint32_t *value, enum ChannelNumber chnl)
 {
 	if (!drv_initialised) {
 		return ERR_NOT_INITIALISED;
@@ -435,7 +436,7 @@ int position_get(uint32_t *value, enum ChannelNumber chnl)
 	return SUCCESS;
 }
 
-int mode_set(enum ControlModes new_mode)
+return_codes_t mode_set(enum ControlModes new_mode)
 {
 	if (!drv_initialised) {
 		return ERR_NOT_INITIALISED;
@@ -444,7 +445,7 @@ int mode_set(enum ControlModes new_mode)
 	control_mode = new_mode;
 	return SUCCESS;
 }
-int mode_get(enum ControlModes *value)
+return_codes_t mode_get(enum ControlModes *value)
 {
 	if (!drv_initialised) {
 		return ERR_NOT_INITIALISED;
@@ -455,7 +456,7 @@ int mode_get(enum ControlModes *value)
 }
 
 // TODO - remove, use shell arguments instead
-int get_control_mode_from_string(char *str_control_mode, enum ControlModes *ret_value)
+return_codes_t get_control_mode_from_string(char *str_control_mode, enum ControlModes *ret_value)
 {
 	if (strcmp(str_control_mode, "speed") == 0) {
 		*ret_value = SPEED;
@@ -471,7 +472,7 @@ int get_control_mode_from_string(char *str_control_mode, enum ControlModes *ret_
 }
 
 // TODO - remove, use shell arguments instead
-int get_control_mode_as_string(enum ControlModes control_mode, char **ret_value)
+return_codes_t get_control_mode_as_string(enum ControlModes control_mode, char **ret_value)
 {
 	if (control_mode == SPEED) {
 		*ret_value = "Speed";
