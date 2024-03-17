@@ -7,8 +7,11 @@
 #include <stdlib.h>
 #include "driver.h"
 #include "storage.h"
-#include "return_codes.h"
 
+// TODO - worth to create a log_error() function which would map common errors and print them to
+// avoid lots of if else statements. Can be done later
+
+// TODO - correct all "our" return codes var names to common ret or something like that
 
 enum ChannelNumber relevant_channel = CH0;
 
@@ -34,7 +37,7 @@ static int cmd_channel(const struct shell *shell, size_t argc, char *argv[])
 static int cmd_speed(const struct shell *shell, size_t argc, char *argv[])
 {
 	// TODO - add reset current template in this function
-	int ret;
+	return_codes_t ret;
 	uint32_t speed_mrpm;
 
 	if (argc == 1) {
@@ -72,7 +75,7 @@ static int cmd_speed(const struct shell *shell, size_t argc, char *argv[])
 
 static int cmd_off_on(const struct shell *shell, size_t argc, char *argv[])
 {
-	int ret;
+	return_codes_t ret;
 
 	if (argc == 1) {
 		if (get_motor_off_on(relevant_channel)) {
@@ -141,7 +144,7 @@ static int cmd_off_on(const struct shell *shell, size_t argc, char *argv[])
 
 static int cmd_position(const struct shell *shell, size_t argc, char *argv[])
 {
-	int ret;
+	return_codes_t ret;
 	uint32_t position;
 
 	if (argc == 1) {
@@ -177,7 +180,7 @@ static int cmd_position(const struct shell *shell, size_t argc, char *argv[])
 
 static int cmd_mode(const struct shell *shell, size_t argc, char *argv[])
 {
-	int ret;
+	return_codes_t ret;
 	enum ControlModes mode;
 
 	if (argc == 1) {
@@ -261,7 +264,7 @@ static int cmd_drv_version(const struct shell *shell, size_t argc, char *argv[])
 static int cmd_template_active(const struct shell *shell, size_t argc, char *argv[])
 {
 	struct Template current;
-	int error = get_current_template(&current);
+	return_codes_t error = get_current_template(&current);
 
 	if (error == SUCCESS) {
 		shell_fprintf(shell, SHELL_INFO,
@@ -282,7 +285,7 @@ static int cmd_template_active(const struct shell *shell, size_t argc, char *arg
 static int cmd_template_get(const struct shell *shell, size_t argc, char *argv[])
 {
 	uint8_t size = get_template_size();
-	int error;
+	return_codes_t error;
 
 	if (argc == 1) {
 		struct Template *tmp = (struct Template *)malloc(size * sizeof(struct Template));
@@ -313,7 +316,8 @@ static int cmd_template_get(const struct shell *shell, size_t argc, char *argv[]
 		struct Template res;
 		uint8_t template_id;
 
-		int error = get_template_and_id_by_name(argv[1], &res, &template_id); // TODO -NULL?
+		return_codes_t error = get_template_and_id_by_name(argv[1], &res, &template_id);
+		// TODO -NULL?
 
 		if (error == SUCCESS) {
 			shell_fprintf(shell, SHELL_INFO, "speed %d\n", res.speed);
@@ -394,7 +398,7 @@ static int cmd_template_apply(const struct shell *shell, size_t argc, char *argv
 static int cmd_template_set(const struct shell *shell, size_t argc, char *argv[])
 {
 	struct Template new_template;
-	int ret;
+	return_codes_t ret;
 
 	strcpy(new_template.name, argv[1]);
 	new_template.speed = (uint32_t)strtol(argv[2], NULL, 10);
@@ -412,7 +416,7 @@ static int cmd_template_set(const struct shell *shell, size_t argc, char *argv[]
 static int cmd_template_clear(const struct shell *shell, size_t argc, char *argv[])
 {
 	if (argc == 1) {
-		int error = factory_reset();
+		return_codes_t error = factory_reset();
 
 		if (error == SUCCESS) {
 			shell_fprintf(shell, SHELL_NORMAL, "Templates cleared\n");

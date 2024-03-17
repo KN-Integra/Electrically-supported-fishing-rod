@@ -9,8 +9,10 @@
 #include <zephyr/fs/nvs.h>
 #include <zephyr/sys/__assert.h>
 
-#include "return_codes.h"
 #include "storage.h"
+
+// TODO - correct all errno return var names to common, eg. errno_error or something like that
+// TODO - correct all "our" return codes var names to common ret or something like that
 
 #define NVS_PARTITION		storage_partition
 #define NVS_PARTITION_DEVICE	FIXED_PARTITION_DEVICE(NVS_PARTITION)
@@ -86,7 +88,7 @@ uint8_t get_template_size(void)
 	return alloc_size;
 }
 
-int set_template(struct Template new_template)
+return_codes_t set_template(struct Template new_template)
 {
 	if (!initialized) {
 		return ERR_NOT_INITIALISED;
@@ -94,7 +96,7 @@ int set_template(struct Template new_template)
 
 	struct Template tmp_template;
 	uint8_t idx;
-	int error_get_template;
+	return_codes_t error_get_template;
 	int error_write;
 
 	// Get template index from name.
@@ -143,7 +145,7 @@ int set_template(struct Template new_template)
 	return SUCCESS;
 }
 
-int get_templates(struct Template *templates)
+return_codes_t get_templates(struct Template *templates)
 {
 	if (!initialized) {
 		return ERR_NOT_INITIALISED;
@@ -169,7 +171,7 @@ int get_templates(struct Template *templates)
 	return SUCCESS;
 }
 
-int get_template_and_id_by_name(char *name, struct Template *result, uint8_t *out_id)
+return_codes_t get_template_and_id_by_name(char *name, struct Template *result, uint8_t *out_id)
 {
 	if (!initialized) {
 		return ERR_NOT_INITIALISED;
@@ -199,7 +201,7 @@ int get_template_and_id_by_name(char *name, struct Template *result, uint8_t *ou
 	return ERR_COULDNT_FIND_TEMPLATE;
 }
 
-int get_current_template(struct Template *result)
+return_codes_t get_current_template(struct Template *result)
 {
 	if (!initialized) {
 		return ERR_NOT_INITIALISED;
@@ -211,12 +213,13 @@ int get_current_template(struct Template *result)
 	return get_template_and_id_by_name(current_template, result, &idx);
 }
 
-int set_current_template(char *name)
+return_codes_t set_current_template(char *name)
 {
+	int error;
+
 	if (!initialized) {
 		return ERR_NOT_INITIALISED;
 	}
-	int error;
 
 	strcpy(current_template, name);
 	// TODO - also check, if there is any current template applied
@@ -235,8 +238,12 @@ int set_current_template(char *name)
 	return SUCCESS;
 }
 
-int remove_template_by_name(char *name)
+return_codes_t remove_template_by_name(char *name)
 {
+	struct Template template_to_remove;
+	uint8_t idx;
+	return_codes_t ret;
+
 	if (!initialized) {
 		return ERR_NOT_INITIALISED;
 	}
@@ -244,40 +251,36 @@ int remove_template_by_name(char *name)
 		return ERR_EMPTY_TEMPLATE_LIST;
 	}
 
-	struct Template template_to_remove;
-	uint8_t idx;
-	int error;
-
-	error = get_template_and_id_by_name(name, &template_to_remove, &idx);
-	if (error == SUCCESS) {
+	ret = get_template_and_id_by_name(name, &template_to_remove, &idx);
+	if (ret == SUCCESS) {
 		if (idx < alloc_size - 1) {
 			struct Template last;
-			int error_inside;
+			int error_errno;
 
-			error_inside = nvs_read(&fs, alloc_size + TEMPLATES_START_ID - 1,
+			error_errno = nvs_read(&fs, alloc_size + TEMPLATES_START_ID - 1,
 						   &last, sizeof(struct Template));
-			if (error < 0) {
-				handle_errno_error(error, __LINE__);
+			if (ret < 0) {
+				handle_errno_error(error_errno, __LINE__);
 				return ERR_ERROR_CODE_FROM_ERRNO;
 			}
-			if (error == 0) {
+			if (ret == 0) {
 				return ERR_NOTHING_READ_DURING_NVS_READ;
 			}
 
-			error_inside = nvs_write(&fs, idx + TEMPLATES_START_ID,
+			error_errno = nvs_write(&fs, idx + TEMPLATES_START_ID,
 							&last, sizeof(struct Template));
-			if (error < 0) {
-				handle_errno_error(error, __LINE__);
+			if (ret < 0) {
+				handle_errno_error(error_errno, __LINE__);
 				return ERR_ERROR_CODE_FROM_ERRNO;
 			}
-			if (error == 0) {
+			if (ret == 0) {
 				return ERR_NOTHING_WRITTEN_DURING_NVS_WRITE;
 			}
 		}
 		alloc_size--;
 		(void)nvs_write(&fs, ALLOC_SIZE_ID, &alloc_size, sizeof(uint8_t));
 	} else {
-		return error;
+		return ret;
 	}
 
 	return SUCCESS;
@@ -285,7 +288,7 @@ int remove_template_by_name(char *name)
 	//TODO - also remove current template if applicable (current template is one being removed)
 }
 
-int factory_reset(void)
+return_codes_t factory_reset(void)
 {
 	if (alloc_size == 0) {
 		return ERR_EMPTY_TEMPLATE_LIST;
