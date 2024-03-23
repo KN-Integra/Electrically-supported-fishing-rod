@@ -19,7 +19,9 @@ class ConnectScreen(Screen):
 
     def scan_callback(self, x):
         devices = x.result()
-        all_devices = ''.join([str(device.address) + " " + str(device.name) + '\n' for device in devices])
+        all_devices = "".join(
+            [str(device.address) + " " + str(device.name) + "\n" for device in devices]
+        )
         self.ids.scan_result.text = str(all_devices)
         for device in devices:
             if device.name == "Wyndka":
@@ -40,6 +42,8 @@ class ConnectScreen(Screen):
         connection = x.result()
         if connection:
             self.ids.connection_label.text = ""
-            self.manager.current = 'cmd'
+            self.manager.current = "cmd"
         else:
             self.ids.connection_label.text = "Failed to conenct"
+
+

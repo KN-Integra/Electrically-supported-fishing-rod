@@ -4,14 +4,9 @@ import asyncio
 from bluetoothclient import BluetoothClient
 
 from kivy.app import App
-from kivy.app import async_runTouchApp
-from kivy.core.window import Window
 from kivy.core.text import LabelBase
-from kivy.uix.label import Label
-from kivy.uix.widget import Widget
 from kivy.uix.screenmanager import ScreenManager
 from kivy.lang import Builder
-from kivy.logger import Logger
 
 from screens.cmd import CmdScreen
 from screens.connect import ConnectScreen

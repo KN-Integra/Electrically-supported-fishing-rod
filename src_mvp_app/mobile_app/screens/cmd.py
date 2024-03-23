@@ -1,11 +1,9 @@
 import asyncio
 import logging
-import time
 from kivy.app import App
 from kivy.uix.screenmanager import Screen
 from bluetoothclient import BluetoothClient, Template
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.gridlayout import GridLayout
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.modules import inspector
@@ -13,27 +11,26 @@ from kivy.core.window import Window
 
 
 class ContentBox(BoxLayout):
-    def __init__(self, BLEClient: BluetoothClient, template: Template,**kwargs):
+    def __init__(self, BLEClient: BluetoothClient, template: Template, **kwargs):
         super(ContentBox, self).__init__(**kwargs)
-        self.register_event_type('on_click')
+        self.register_event_type("on_click")
         self.BLEClient = BLEClient
         self.template = template
-        self.add_widget(
-            Label(text=template.name, size_hint=(1, None), height=40))
-        self.add_widget(
-            Label(text=str(template.speed), size_hint=(1, None), height=40)
-        )
+        self.add_widget(Label(text=template.name, size_hint=(1, None), height=40))
+        self.add_widget(Label(text=str(template.speed), size_hint=(1, None), height=40))
+
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
-            self.dispatch('on_click')
+            self.dispatch("on_click")
             return True
         return super(ContentBox, self).on_touch_down(touch)
-        
+
     def on_click(self):
         asyncio.create_task(self.BLEClient.set_active_template(self.template))
 
+
 class TemplateButton(BoxLayout):
-    def __init__(self, BLEClient: BluetoothClient, template: Template,**kwargs):
+    def __init__(self, BLEClient: BluetoothClient, template: Template, **kwargs):
         super(TemplateButton, self).__init__(**kwargs)
         self.BLEClient = BLEClient
         self.template = template
@@ -46,7 +43,6 @@ class TemplateButton(BoxLayout):
     def template_delete(self, *args):
         logging.info("deleting")
         asyncio.create_task(self.BLEClient.delete_template(self.template))
-        
 
 
 class CmdScreen(Screen):
@@ -77,12 +73,14 @@ class CmdScreen(Screen):
         self.update_templates_grid()
 
     def template_add(self):
-        templ = Template(name=self.ids.new_template_name.text,
-                         speed=int(self.ids.new_template_speed.text))
+        templ = Template(
+            name=self.ids.new_template_name.text,
+            speed=int(self.ids.new_template_speed.text),
+        )
         logging.info(templ)
         template_add_task = asyncio.create_task(self.BLEClient.create_template(templ))
         template_add_task.add_done_callback(self.template_add_callback)
-    
+
     def template_add_callback(self, task):
         # add_button = self.ids.new_template
         self.ids.new_template_name.text = ""
@@ -94,7 +92,7 @@ class CmdScreen(Screen):
         templates_grid = self.ids.templates_grid
         templates_grid.clear_widgets()
         logging.info("widgets should be cleared")
-        templates_grid.bind(minimum_height=templates_grid.setter('height'))
+        templates_grid.bind(minimum_height=templates_grid.setter("height"))
         templates = self.BLEClient.template_list
         for template in templates:
             logging.info(template)
@@ -121,13 +119,15 @@ class CmdScreen(Screen):
 
     def enter_bootloader(self):
         print("entering bootloader")
-        asyncio.create_task(self.BLEClient.cmd_boot())\
-            .add_done_callback(self.disconnect_callback)
+        asyncio.create_task(self.BLEClient.cmd_boot()).add_done_callback(
+            self.disconnect_callback
+        )
 
     def disconnect(self):
         print("disconnecting")
-        asyncio.create_task(self.BLEClient.cmd_disconnect())\
-            .add_done_callback(self.disconnect_callback)
+        asyncio.create_task(self.BLEClient.cmd_disconnect()).add_done_callback(
+            self.disconnect_callback
+        )
 
     def disconnect_callback(self, task):
-        self.manager.current = 'connect'
+        self.manager.current = "connect"
