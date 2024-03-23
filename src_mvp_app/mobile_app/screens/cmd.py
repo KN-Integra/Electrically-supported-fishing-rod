@@ -94,7 +94,7 @@ class CmdScreen(Screen):
         logging.info("widgets should be cleared")
         templates_grid.bind(minimum_height=templates_grid.setter("height"))
         templates = self.BLEClient.template_list
-        for template in templates:
+        for template in templates.items:
             logging.info(template)
             template_button = TemplateButton(self.BLEClient, template)
             templates_grid.add_widget(template_button)

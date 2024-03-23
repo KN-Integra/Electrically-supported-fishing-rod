@@ -1,7 +1,7 @@
 import kivy
 import asyncio
 
-from mock_bluetoothclient import BluetoothClient
+from bluetoothclient import BluetoothClient
 
 from kivy.app import App
 from kivy.core.text import LabelBase
@@ -29,7 +29,6 @@ class FishingRodApp(App):
 
     def build(self):
         screens = [
-            ConnectScreen(name='connect'),
             CmdScreen(name='cmd')
             ]
         screen_manager = ScreenManager()

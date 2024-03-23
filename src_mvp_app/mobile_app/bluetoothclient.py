@@ -59,7 +59,7 @@ class BluetoothClient:
         else:
             return False
 
-    async def cmd_scan(self) -> any:
+    async def cmd_scan(self) -> list[BLEDevice]:
         print("Scanning for devices...")
         # TODO: try active scanning by using scanner.start() and periodically print scanner.discoverd_devices
         devices = await self.scanner.discover(timeout=5, return_adv=False)
@@ -170,7 +170,7 @@ class BluetoothClient:
         except Exception as e:
             print(e)
 
-    async def set_active_template(self, templ: Template):
+    async def set_active_template(self, templ: Template) -> None:
         logging.info("setting active template")
         cmd = CMD_ACT_TMPL + templ.to_bytes()
         try:
@@ -180,7 +180,7 @@ class BluetoothClient:
         except Exception as e:
             logging.error(e)
 
-    async def create_template(self, templ: Template):
+    async def create_template(self, templ: Template) -> None:
         logging.info("creating new template")
         cmd = CMD_ADD_TMPL + templ.to_bytes()
         try:
@@ -190,7 +190,7 @@ class BluetoothClient:
         except Exception as e:
             logging.error(e)
 
-    async def delete_template(self, templ: Template):
+    async def delete_template(self, templ: Template) -> None:
         logging.info("creating new template")
         cmd = CMD_DEL_TMPL + templ.to_bytes()
         try:
