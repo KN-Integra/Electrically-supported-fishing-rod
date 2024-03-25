@@ -3,47 +3,12 @@ import logging
 from kivy.app import App
 from kivy.uix.screenmanager import Screen
 from bluetoothclient import BluetoothClient, Template
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.button import Button
-from kivy.uix.label import Label
 from kivy.modules import inspector
 from kivy.core.window import Window
+from custom_widgets.components import TemplateButton
 
 
-class ContentBox(BoxLayout):
-    def __init__(self, BLEClient: BluetoothClient, template: Template, **kwargs):
-        super(ContentBox, self).__init__(**kwargs)
-        self.register_event_type("on_click")
-        self.BLEClient = BLEClient
-        self.template = template
-        self.add_widget(Label(text=template.name, size_hint=(1, None), height=40))
-        self.add_widget(Label(text=str(template.speed), size_hint=(1, None), height=40))
-
-    def on_touch_down(self, touch):
-        if self.collide_point(*touch.pos):
-            self.dispatch("on_click")
-            return True
-        return super(ContentBox, self).on_touch_down(touch)
-
-    def on_click(self):
-        asyncio.create_task(self.BLEClient.set_active_template(self.template))
-
-
-class TemplateButton(BoxLayout):
-    def __init__(self, BLEClient: BluetoothClient, template: Template, **kwargs):
-        super(TemplateButton, self).__init__(**kwargs)
-        self.BLEClient = BLEClient
-        self.template = template
-        content_box = ContentBox(BLEClient=BLEClient, template=template)
-        del_button = Button(text="del", on_press=self.template_delete)
-
-        self.add_widget(content_box)
-        self.add_widget(del_button)
-
-    def template_delete(self, *args):
-        logging.info("deleting")
-        asyncio.create_task(self.BLEClient.delete_template(self.template))
-
+Window.size = (412, 915)
 
 class CmdScreen(Screen):
     def __init__(self, **kw):
@@ -90,7 +55,7 @@ class CmdScreen(Screen):
     def update_templates_grid(self):
         logging.info("cleraing widget")
         templates_grid = self.ids.templates_grid
-        templates_grid.clear_widgets()
+        # templates_grid.clear_widgets()
         logging.info("widgets should be cleared")
         templates_grid.bind(minimum_height=templates_grid.setter("height"))
         templates = self.BLEClient.template_list

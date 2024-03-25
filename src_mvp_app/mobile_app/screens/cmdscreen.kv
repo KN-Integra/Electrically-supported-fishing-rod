@@ -15,6 +15,7 @@
         padding: 20
         BoxLayout:
             orientation: 'horizontal'
+            size_hint: [1, 0.1]
             Image:
                 source: 'media/integra-icon.png'
                 # size: self.texture_size
@@ -25,27 +26,19 @@
 
         ScrollView:
             id: templates_view
+            size_hint: [1, 0.5]
             GridLayout:
                 id: templates_grid
                 cols: 2
                 size_hint_y: None
                 orientation: 'lr-tb'
-
-        BoxLayout:
-            orientation: 'horizontal'
-            spacing: '15dp'
-            RoundedButton:
-                text: "set speed"
-                on_release: root.speed_set()
-            RoundedInput:
-                id: speed_input
-                hint_text: "0"
-                input_type: "number"
+                spacing: 15
 
         RoundedButton:
             id: speed_label
             text: "current speed: "
             on_release: root.speed_get()
+            size_hint: [1, 0.1]
             canvas.before:
                 Color:
                     rgba: (0.517, 0.41, 0.33, 1)
@@ -54,22 +47,11 @@
                     size: self.size
                     radius: [20,]
 
-        # RoundedButton:
-        #     id: driver_label
-        #     text: "Driver version"
-        #     on_release: root.get_driver_version()
-        #     canvas.before:
-        #         Color:
-        #             rgba: (0.517, 0.41, 0.33, 1)
-        #         RoundedRectangle:
-        #             pos: self.pos
-        #             size: self.size
-        #             radius: [20,]
         BoxLayout:
             orientation: 'horizontal'
             id: new_template
-            # text: ""
-            # on_release: root.template_add()
+            size_hint: [1, 0.1]
+            spacing: 10
             canvas.before:
                 Color:
                     rgba: (0.517, 0.41, 0.33, 1)
@@ -85,13 +67,10 @@
                 text: "add"
                 on_release: root.template_add()
 
-        Label:
-            id: cmd_label
-            text: ""
-
         RoundedButton:
             text: "enter bootloader"
             on_release: root.enter_bootloader()
+            size_hint: [1, 0.1]
             canvas.before:
                 Color:
                     rgba: (0.8, 0.4, 0, 1) if self.state=='normal' else (1, 0.5, 0.1, 0.7)
@@ -103,7 +82,7 @@
         RoundedButton:
             text: "disconnect"
             on_release: root.disconnect()
-
+            size_hint: [1, 0.1]
             canvas.before:
                 Color:
                     rgba: (0.7, 0.2, 0.1, 1) if self.state=='normal' else (0.9, 0.2, 0.1, 0.7)

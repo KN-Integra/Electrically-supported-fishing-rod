@@ -3,7 +3,9 @@ import asyncio
 
 from mock_bluetoothclient import BluetoothClient
 
-from kivy.app import App
+from kivymd.app import MDApp
+
+# from kivy.app import App
 from kivy.core.text import LabelBase
 from kivy.uix.screenmanager import ScreenManager
 from kivy.lang import Builder
@@ -16,12 +18,12 @@ kivy.require('2.2.0')
 Builder.load_file('screens/connectscreen.kv')
 Builder.load_file('screens/cmdscreen.kv')
 Builder.load_file('custom_widgets/roundedwidgets.kv')
+Builder.load_file('custom_widgets/components.kv')
 
 LabelBase.register(name="lilita-one",
                    fn_regular="fonts/Lilita_One/LilitaOne-Regular.ttf")
 
-
-class FishingRodApp(App):
+class FishingRodApp(MDApp):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
