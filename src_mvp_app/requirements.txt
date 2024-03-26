@@ -1,2 +1,23 @@
 bleak==0.20.2
+buildozer==1.5.0
+certifi==2023.7.22
+charset-normalizer==3.2.0
 dbus-fast==1.93.0
+distlib==0.3.7
+docutils==0.20.1
+ffpyplayer==4.5.0
+filelock==3.12.3
+filetype==1.2.0
+idna==3.4
+Kivy @ https://github.com/kivy/kivy/archive/master.zip#sha256=bf8cd8b41ff2e0c089b6acafb89373904a9f2758214db39c8baf98a2b42e25a0
+Kivy-Garden==0.1.5
+kivymd==1.2.0
+pexpect==4.8.0
+Pillow==10.0.0
+platformdirs==3.10.0
+ptyprocess==0.7.0
+Pygments==2.16.1
+requests==2.31.0
+sh==2.0.6
+urllib3==2.0.4
+virtualenv==20.24.4
