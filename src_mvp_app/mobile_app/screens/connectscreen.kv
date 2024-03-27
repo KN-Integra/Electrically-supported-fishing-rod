@@ -1,75 +1,126 @@
 #:kivy 2.2.0
+#:import utils kivy.utils
 
 <ConnectScreen>:
     canvas.before:
         Color:
-            rgba: (0.16,0.22,0.28,1)
+            rgba: utils.rgba("#ffffff")
         Rectangle:
             pos: self.pos
             size: self.size
+
     BoxLayout:
         width: root.width
         height: root.height
-        orientation: 'vertical'
-        spacing: '10dp'
-        padding: '10dp'
+        orientation: "vertical"
+        spacing: "20dp"
+        padding: "30dp"
+
         Image:
-            source: 'media/integra-icon.png'
+            source: "media/integra-icon--light.png"
             fit_mode: "contain"
             width: root.width
 
-        Label:
+        MDLabel:
             id: title
-            bold: True
-            font_size: '45dp'
             text: "WWE Sumołów 2000"
-            font_name: "lilita-one"
 
-        RoundedButton:
+            bold: True
+            font_size: "35dp"
+            font_name: "lilita-one"
+            
+            theme_text_color: "Custom"
+            text_color: app.theme_cls.text_color
+            
+            halign: "center"
+            valign: "center"
+
+        MDRaisedButton:
+            id: auto_connect_button
             text: "Automatic connect"
             on_release: root.connect_auto()
 
-        RoundedButton:
+            font_size: "25dp"
+
+            padding: "35dp"
+            width: root.width - 60
+
+            line_width: 2
+
+            theme_text_color: "Custom"
+            md_bg_color: app.theme_cls.primary_color
+            text_color: app.theme_cls.text_color
+
+        MDRectangleFlatButton:
             id: connect_button
             text: "Scan"
             on_release: root.scan_for_devices()
 
+            font_size: "25dp"
+
+            padding: "35dp"
+            width: root.width - 60
+
+            line_width: 2
+
+            theme_text_color: "Custom"
+            line_color: app.theme_cls.accent_color
+            text_color: app.theme_cls.text_color
+
         BoxLayout:
-            orientation: 'horizontal'
-            spacing: '10dp'
-            RoundedButton:
+            orientation: "horizontal"
+            spacing: "30dp"
+
+            MDRaisedButton:
                 text: "Connect"
                 on_release: root.connect_with_mac()
-            RoundedInput:
-                font_size: '18dp'
+
+                font_size: "20dp"
+
+                padding: "22dp"
+                width: (root.width - 60) // 2 - 30
+
+                line_width: 2
+
+                theme_text_color: "Custom"
+                md_bg_color: utils.rgba("#65a30d")
+                text_color: app.theme_cls.text_color
+
+            MDTextField:
                 id: input_address
 
-        Label:
-            size_hint_y: 0.2
+                hint_text: "Input address..."
+
+                width: (root.width - 60) // 2 - 30
+
+                font_size: "25dp"
+
+        MDLabel:
             id: connection_label
             text: ""
-            color: (1,0,0,0.9)
 
-        TextInput:
+            size_hint_y: 0.2
+            text_color: app.theme_cls.text_color
+
+        MDTextField:
             id: scan_result
-            padding: '15dp'
-            font_size: '15dp'
+
             text: "scan results"
+
+            mode: "rectangle"
+
+            font_size: "15dp"
+
+            padding: "15dp"
+            cursor_width: "2dp"
             size_hint_y: 2
+
             multiline: True
             readonly: True
-            halign:'center'
-            cursor_width: '2dp'
-            canvas.before:
-                Color:
-                    rgba: (1, 1, 1, 0.8)
-                RoundedRectangle:
-                    pos: self.pos
-                    size: self.size
-                    radius: [20,]
-                Color:
-                    rgba: (0.3, 0.3, 0.3, 1)
-        
+
+            halign: "center"
+            valign: "center"
+
         Image:
             source: "media/nordic_logo.png"
             size: self.texture_size

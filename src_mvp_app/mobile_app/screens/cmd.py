@@ -27,6 +27,7 @@ class CmdScreen(Screen):
 
     def speed_get_callback(self, task):
         self.ids.speed_label.text = "current speed: " + str(task.result())
+        self.ids.speed_label.width = self.width - 60
 
     def templates_update(self):
         templates_task = asyncio.create_task(self.BLEClient.get_templ_list())

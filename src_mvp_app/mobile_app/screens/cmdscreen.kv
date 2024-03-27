@@ -1,92 +1,116 @@
 #:kivy 2.2.0
+#:import utils kivy.utils
 
 <CmdScreen>:
     canvas.before:
         Color:
-            rgba: (0.16,0.22,0.28,1)
+            rgba: utils.rgba("#ffffff")
         Rectangle:
             pos: self.pos
             size: self.size
+
     BoxLayout:
         width: root.width
         height: root.height
-        orientation: 'vertical'
-        spacing: 20
-        padding: 20
+        orientation: "vertical"
+        spacing: "20dp"
+        padding: "30dp"
+
         BoxLayout:
-            orientation: 'horizontal'
+            orientation: "horizontal"
             size_hint: [1, 0.1]
+            spacing: root.width // 2 if root.width > 600 else root.width // 3
+            height: "20dp"
+
             Image:
-                source: 'media/integra-icon.png'
-                # size: self.texture_size
+                source: "media/integra-icon--light.png"
                 fit_mode: "contain"
+                size_hint_y: None
             Image:
-                source: 'media/nordic_logo.png'
+                source: "media/nordic_logo.png"
                 fit_mode: "contain"
+                size_hint_y: None
 
         ScrollView:
             id: templates_view
             size_hint: [1, 0.5]
+
             GridLayout:
                 id: templates_grid
-                cols: 2
-                size_hint_y: None
-                orientation: 'lr-tb'
-                spacing: 15
 
-        RoundedButton:
+                cols: root.width // 200
+                size_hint_y: None
+                orientation: "lr-tb"
+                spacing: "15dp"
+
+        MDRectangleFlatButton:
             id: speed_label
-            text: "current speed: "
+            text: "Current speed: "
             on_release: root.speed_get()
-            size_hint: [1, 0.1]
-            canvas.before:
-                Color:
-                    rgba: (0.517, 0.41, 0.33, 1)
-                RoundedRectangle:
-                    pos: self.pos
-                    size: self.size
-                    radius: [20,]
+
+            font_size: "25dp"
+
+            padding: "25dp"
+            width: root.width - 60
+
+            line_width: 2
+            line_color: utils.rgba("#a18072")
+
+            theme_text_color: "Custom"
+            text_color: app.theme_cls.text_color
 
         BoxLayout:
-            orientation: 'horizontal'
+            orientation: "horizontal"
             id: new_template
+
             size_hint: [1, 0.1]
-            spacing: 10
-            canvas.before:
-                Color:
-                    rgba: (0.517, 0.41, 0.33, 1)
-            RoundedInput:
+            spacing: "20dp"
+
+            MDTextField:
                 id: new_template_name
-                hint_text: "enter name"
+
+                hint_text: "Enter name"
                 input_type: "text"
-            RoundedInput:
+
+            MDTextField:
                 id: new_template_speed
                 hint_text: "31999"
                 input_type: "number"
-            RoundedButton:
-                text: "add"
+
+            MDFloatingActionButton:
                 on_release: root.template_add()
 
-        RoundedButton:
-            text: "enter bootloader"
-            on_release: root.enter_bootloader()
-            size_hint: [1, 0.1]
-            canvas.before:
-                Color:
-                    rgba: (0.8, 0.4, 0, 1) if self.state=='normal' else (1, 0.5, 0.1, 0.7)
-                RoundedRectangle:
-                    pos: self.pos
-                    size: self.size
-                    radius: [30,]
+                icon: "plus"
+                md_bg_color: app.theme_cls.icon_color
 
-        RoundedButton:
-            text: "disconnect"
+        MDRectangleFlatButton:
+            text: "Enter Bootloader"
+            on_release: root.enter_bootloader()
+            disabled: self.state == "normal"
+
+            font_size: "25dp"
+
+            padding: "25dp"
+            width: root.width - 60
+
+            line_width: 2
+            line_color: app.theme_cls.accent_color
+
+            theme_text_color: "Custom"
+            text_color: app.theme_cls.text_color
+            # md_bg_color: utils.rgba("#fbbf24") if self.state=="normal" else utils.rgba("#f59e0b")
+
+        MDRaisedButton:
+            text: "Disconnect"
             on_release: root.disconnect()
-            size_hint: [1, 0.1]
-            canvas.before:
-                Color:
-                    rgba: (0.7, 0.2, 0.1, 1) if self.state=='normal' else (0.9, 0.2, 0.1, 0.7)
-                RoundedRectangle:
-                    pos: self.pos
-                    size: self.size
-                    radius: [30,]
+            disabled: self.state != "normal"
+            
+            font_size: "25dp"
+
+            padding: "25dp"
+            width: root.width - 60
+
+            line_width: 2
+
+            # md_bg_color: utils.rgba("#f87171") if self.state=="normal" else utils.rgba("#dc2626")
+            md_bg_color: app.theme_cls.error_color
