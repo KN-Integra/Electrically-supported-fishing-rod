@@ -1,0 +1,127 @@
+#:kivy 2.2.0
+#:import utils kivy.utils
+
+<ConnectScreen>:
+    canvas.before:
+        Color:
+            rgba: app.theme_cls.bg_light if app.theme_cls.theme_style == "Light" else app.theme_cls.bg_darkest
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    BoxLayout:
+        width: root.width
+        height: root.height
+        orientation: "vertical"
+        spacing: "20dp"
+        padding: "30dp"
+
+        Image:
+            source: "media/integra-icon--light.png" if app.theme_cls.theme_style == "Light" else "media/integra-icon--dark.png"
+            fit_mode: "contain"
+            width: root.width
+
+        MDLabel:
+            id: title
+            text: "WWE Sumołów 2000"
+
+            bold: True
+            font_size: "35dp"
+            font_name: "lilita-one"
+            
+            theme_text_color: "Custom"
+            text_color: app.theme_cls.text_color
+            
+            halign: "center"
+            valign: "center"
+
+        MDRaisedButton:
+            id: auto_connect_button
+            text: "Automatic connect"
+            on_release: root.connect_auto()
+
+            font_size: "25dp"
+
+            padding: "35dp"
+            width: root.width - 60
+
+            line_width: 2
+
+            theme_text_color: "Custom"
+            text_color: app.theme_cls.text_color
+            md_bg_color: app.theme_cls.primary_light if app.theme_cls.theme_style == "Light" else app.theme_cls.primary_dark
+
+        MDRectangleFlatButton:
+            id: connect_button
+            text: "Scan"
+            on_release: root.scan_for_devices()
+
+            font_size: "25dp"
+
+            padding: "35dp"
+            width: root.width - 60
+
+            line_width: 2
+
+            theme_text_color: "Custom"
+            text_color: app.theme_cls.text_color
+            line_color: app.theme_cls.accent_light if app.theme_cls.theme_style == "Light" else app.theme_cls.accent_dark
+
+        BoxLayout:
+            orientation: "horizontal"
+            spacing: "30dp"
+
+            MDRaisedButton:
+                text: "Connect"
+                on_release: root.connect_with_mac()
+
+                font_size: "20dp"
+
+                padding: "22dp"
+                width: (root.width - 60) // 2 - 30
+
+                line_width: 2
+
+                theme_text_color: "Custom"
+                md_bg_color: utils.rgba("#65a30d")
+                text_color: app.theme_cls.text_color
+
+            MDTextField:
+                id: input_address
+
+                hint_text: "Input address..."
+
+                width: (root.width - 60) // 2 - 30
+
+                font_size: "25dp"
+
+        MDLabel:
+            id: connection_label
+            text: ""
+
+            size_hint_y: 0.2
+            text_color: app.theme_cls.text_color
+
+        MDTextField:
+            id: scan_result
+
+            text: "scan results"
+
+            mode: "rectangle"
+
+            font_size: "15dp"
+
+            padding: "15dp"
+            cursor_width: "2dp"
+            size_hint_y: 2
+
+            multiline: True
+            readonly: True
+
+            halign: "center"
+            valign: "center"
+
+        Image:
+            source: "media/nordic_logo--light.png" if app.theme_cls.theme_style == "Light" else "media/nordic_logo--dark.png"
+            size: self.texture_size
+            fit_mode: "contain"

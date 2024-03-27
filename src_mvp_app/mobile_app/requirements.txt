@@ -7,11 +7,9 @@ distlib==0.3.7
 docutils==0.20.1
 ffpyplayer==4.5.0
 filelock==3.12.3
-filetype==1.2.0
 idna==3.4
-Kivy
+Kivy==2.2.1
 Kivy-Garden==0.1.5
-kivymd==1.2.0
 pexpect==4.8.0
 Pillow==10.0.0
 platformdirs==3.10.0
