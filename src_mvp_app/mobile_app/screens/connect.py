@@ -45,5 +45,3 @@ class ConnectScreen(Screen):
             self.manager.current = "cmd"
         else:
             self.ids.connection_label.text = "Failed to conenct"
-
-
