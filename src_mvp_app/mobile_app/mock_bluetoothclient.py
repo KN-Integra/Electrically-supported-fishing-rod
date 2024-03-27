@@ -87,6 +87,7 @@ class BluetoothClient:
                 Template("Szczupak", 32000),
                 Template("Karp", 42000),
                 Template("makrela", 20000),
+                Template("morszczuk", 12000),
             ]
         )
 

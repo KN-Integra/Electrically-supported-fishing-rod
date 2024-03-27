@@ -1,7 +1,7 @@
 import kivy
 import asyncio
 
-from mock_bluetoothclient import BluetoothClient
+from bluetoothclient import BluetoothClient
 
 from kivymd.app import MDApp
 

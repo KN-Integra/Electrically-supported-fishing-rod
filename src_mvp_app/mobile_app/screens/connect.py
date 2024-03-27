@@ -3,6 +3,8 @@ from kivy.app import App
 from kivy.uix.screenmanager import Screen
 
 
+DEVICE_NAME = "Motor Controller"
+
 class ConnectScreen(Screen):
     def __init__(self, **kw):
         super().__init__(**kw)
@@ -24,7 +26,7 @@ class ConnectScreen(Screen):
         )
         self.ids.scan_result.text = str(all_devices)
         for device in devices:
-            if device.name == "Wyndka":
+            if device.name == DEVICE_NAME:
                 self.ids.input_address.text = str(device.address)
 
     def connect_auto(self):

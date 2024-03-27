@@ -38,8 +38,9 @@
 
             GridLayout:
                 id: templates_grid
-
-                cols: root.width // 200
+                cols: 2 
+                # TODO this should work, but apparently it does not
+                # cols: (root.width // 200)
                 size_hint_y: None
                 orientation: "lr-tb"
                 spacing: "15dp"
@@ -80,7 +81,8 @@
 
             MDFloatingActionButton:
                 # on_release: root.template_add()
-                on_release: print(dir(app.theme_cls))
+                # TODO: Remove when template adding is implemented; this is just for testing theme change
+                on_press: self.theme_cls.theme_style = "Dark" if self.theme_cls.theme_style == "Light" else "Light"
 
                 icon: "plus"
                 md_bg_color: app.theme_cls.icon_color if app.theme_cls.theme_style == "Light" else app.theme_cls.opposite_icon_color
