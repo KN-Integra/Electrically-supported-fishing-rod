@@ -9,7 +9,7 @@ ffpyplayer==4.5.0
 filelock==3.12.3
 filetype==1.2.0
 idna==3.4
-Kivy @ https://github.com/kivy/kivy/archive/master.zip#sha256=bf8cd8b41ff2e0c089b6acafb89373904a9f2758214db39c8baf98a2b42e25a0
+Kivy
 Kivy-Garden==0.1.5
 kivymd==1.2.0
 pexpect==4.8.0

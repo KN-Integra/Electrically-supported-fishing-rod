@@ -20,8 +20,9 @@ Builder.load_file('screens/cmdscreen.kv')
 Builder.load_file('custom_widgets/roundedwidgets.kv')
 Builder.load_file('custom_widgets/components.kv')
 
-LabelBase.register(name="lilita-one",
-                   fn_regular="fonts/Lilita_One/LilitaOne-Regular.ttf")
+LabelBase.register(
+    name="lilita-one", fn_regular="fonts/Lilita_One/LilitaOne-Regular.ttf"
+)
 
 class FishingRodApp(MDApp):
 
@@ -30,11 +31,10 @@ class FishingRodApp(MDApp):
         self.BLEClient = BluetoothClient()
 
     def build(self):
-        screens = [
-            ConnectScreen(name='connect'),
-            CmdScreen(name='cmd')
-            ]
+        screens = [ConnectScreen(name="connect"), CmdScreen(name="cmd")]
+
         screen_manager = ScreenManager()
+
         for screen in screens:
             screen_manager.add_widget(screen)
 
