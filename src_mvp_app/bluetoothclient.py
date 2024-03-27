@@ -1,18 +1,17 @@
-
 import asyncio
 import os
 from bleak import BleakScanner, BleakClient, BLEDevice, BleakGATTCharacteristic
 
-CMD_INIT_BYTES = b'\x00'
-CMD_BOOT_BYTES = b'\x01'
-CMD_SPEED_BYTES = b'\x02'
-CMD_DRIVER_BYTES = b'\x03'
-CMD_DEBUG_BYTES = b'\x04'
+CMD_INIT_BYTES = b"\x00"
+CMD_BOOT_BYTES = b"\x01"
+CMD_SPEED_BYTES = b"\x02"
+CMD_DRIVER_BYTES = b"\x03"
+CMD_DEBUG_BYTES = b"\x04"
 READ_CHARACTERISTIC_UUID = "00002a38-0000-1000-8000-00805f9b34fb"
 WRITE_CHARACTRERISTIC_UUID = "00002a39-0000-1000-8000-00805f9b34fb"
 
 
-class BluetoothClient():
+class BluetoothClient:
 
     def __init__(self) -> None:
         self.scanner: BleakScanner = BleakScanner()
@@ -37,8 +36,10 @@ class BluetoothClient():
             print("connection state:", self.check_connection())
             return self.check_connection()
         else:
-            print("Failed to find Wyndka, make sure that the device is powered on\n\
-                  If it is, then try to run scan, and connect using the proper mac address")
+            print(
+                "Failed to find Wyndka, make sure that the device is powered on\n\
+                  If it is, then try to run scan, and connect using the proper mac address"
+            )
         return False
 
     async def cmd_connect(self, addr: str) -> bool:
@@ -63,7 +64,9 @@ class BluetoothClient():
         print("init")
         try:
             cmd = CMD_INIT_BYTES
-            await self.wyndka_client.write_gatt_char(WRITE_CHARACTRERISTIC_UUID, cmd, response=False)
+            await self.wyndka_client.write_gatt_char(
+                WRITE_CHARACTRERISTIC_UUID, cmd, response=False
+            )
         except Exception as e:
             print(f"init cmd: {e}")
 
@@ -71,24 +74,32 @@ class BluetoothClient():
         speed = None
         try:
             cmd = CMD_SPEED_BYTES
-            await self.wyndka_client.write_gatt_char(WRITE_CHARACTRERISTIC_UUID, cmd, response=False)
+            await self.wyndka_client.write_gatt_char(
+                WRITE_CHARACTRERISTIC_UUID, cmd, response=False
+            )
             response = await self.wyndka_client.read_gatt_char(READ_CHARACTERISTIC_UUID)
-            speed = int.from_bytes(response[0:4], byteorder='little')
+            speed = int.from_bytes(response[0:4], byteorder="little")
         except Exception as e:
             print(e)
         return speed if speed is not None else -1
 
     async def cmd_driver(self) -> str:
         cmd = CMD_DRIVER_BYTES
-        await self.wyndka_client.write_gatt_char(WRITE_CHARACTRERISTIC_UUID, cmd, response=False)
+        await self.wyndka_client.write_gatt_char(
+            WRITE_CHARACTRERISTIC_UUID, cmd, response=False
+        )
         response = await self.wyndka_client.read_gatt_char(READ_CHARACTERISTIC_UUID)
-        return str(response[0]) + '.' + str(response[1])
+        return str(response[0]) + "." + str(response[1])
 
     async def cmd_speed_set(self, speed_val: int) -> None:
         print("setting speed...")
         try:
-            cmd = bytearray(CMD_SPEED_BYTES + speed_val.to_bytes(4, byteorder='big', signed=False))
-            await self.wyndka_client.write_gatt_char(WRITE_CHARACTRERISTIC_UUID, cmd, response=False)
+            cmd = bytearray(
+                CMD_SPEED_BYTES + speed_val.to_bytes(4, byteorder="big", signed=False)
+            )
+            await self.wyndka_client.write_gatt_char(
+                WRITE_CHARACTRERISTIC_UUID, cmd, response=False
+            )
         except Exception as e:
             print(e)
         print("Done")

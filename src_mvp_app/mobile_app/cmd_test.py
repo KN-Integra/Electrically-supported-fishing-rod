@@ -11,14 +11,15 @@ from kivy.lang import Builder
 from screens.cmd import CmdScreen
 from screens.connect import ConnectScreen
 
-kivy.require('2.2.0')
+kivy.require("2.2.0")
 
-Builder.load_file('screens/connectscreen.kv')
-Builder.load_file('screens/cmdscreen.kv')
-Builder.load_file('custom_widgets/roundedwidgets.kv')
+Builder.load_file("screens/connectscreen.kv")
+Builder.load_file("screens/cmdscreen.kv")
+Builder.load_file("custom_widgets/roundedwidgets.kv")
 
-LabelBase.register(name="lilita-one",
-                   fn_regular="fonts/Lilita_One/LilitaOne-Regular.ttf")
+LabelBase.register(
+    name="lilita-one", fn_regular="fonts/Lilita_One/LilitaOne-Regular.ttf"
+)
 
 
 class FishingRodApp(App):
@@ -28,9 +29,7 @@ class FishingRodApp(App):
         self.BLEClient = BluetoothClient()
 
     def build(self):
-        screens = [
-            CmdScreen(name='cmd')
-            ]
+        screens = [CmdScreen(name="cmd")]
         screen_manager = ScreenManager()
         for screen in screens:
             screen_manager.add_widget(screen)
@@ -47,6 +46,7 @@ class FishingRodApp(App):
 async def main(app):
     await asyncio.gather(app.async_run("asyncio"))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     app = FishingRodApp()
     asyncio.run(main(app))

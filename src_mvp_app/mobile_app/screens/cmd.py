@@ -1,5 +1,7 @@
 import asyncio
 import logging
+
+from kivy.clock import Clock
 from kivy.app import App
 from kivy.uix.screenmanager import Screen
 from bluetoothclient import BluetoothClient, Template
@@ -8,7 +10,8 @@ from kivy.core.window import Window
 from custom_widgets.components import TemplateButton
 
 
-Window.size = (412, 915)
+Window.size = (1080, 2340)
+
 
 class CmdScreen(Screen):
     def __init__(self, **kw):
@@ -21,12 +24,18 @@ class CmdScreen(Screen):
         self.templates_update()
         return super().on_enter(*args)
 
+    def on_leave(self, *args):
+        logging.info("exiting command screen")
+        self.clear_templates_grid()
+        return super().on_enter(*args)
+
     def speed_get(self):
         speed_task = asyncio.create_task(self.BLEClient.cmd_speed_get())
         speed_task.add_done_callback(self.speed_get_callback)
 
     def speed_get_callback(self, task):
         self.ids.speed_label.text = "current speed: " + str(task.result())
+        self.ids.speed_label.width = self.width - 60
 
     def templates_update(self):
         templates_task = asyncio.create_task(self.BLEClient.get_templ_list())
@@ -35,13 +44,12 @@ class CmdScreen(Screen):
     def templates_update_callback(self, task):
         # templates_view = self.ids.templates_view
         inspector.create_inspector(Window, self)
-        self.update_templates_grid()
+        Clock.schedule_once(self.update_templates_grid)
 
     def template_add(self):
-        templ = Template(
-            name=self.ids.new_template_name.text,
-            speed=int(self.ids.new_template_speed.text),
-        )
+        name = self.ids.new_template_name.text
+        speed = self.ids.new_template_speed.text
+        templ = Template(name=name, speed=int(speed) if len(speed) > 0 else 0)
         logging.info(templ)
         template_add_task = asyncio.create_task(self.BLEClient.create_template(templ))
         template_add_task.add_done_callback(self.template_add_callback)
@@ -52,16 +60,16 @@ class CmdScreen(Screen):
         self.update_templates_grid()
         # add_button.ids.new_template_speed.
 
-    def update_templates_grid(self):
-        logging.info("cleraing widget")
+    def update_templates_grid(self, *args):
+        logging.info("clearaing widget")
         templates_grid = self.ids.templates_grid
-        # templates_grid.clear_widgets()
+        templates_grid.clear_widgets()
         logging.info("widgets should be cleared")
         templates_grid.bind(minimum_height=templates_grid.setter("height"))
         templates = self.BLEClient.template_list
-        for template in templates.items:
+        for template in templates:
             logging.info(template)
-            template_button = TemplateButton(self.BLEClient, template)
+            template_button = TemplateButton(template)
             templates_grid.add_widget(template_button)
 
     def speed_set(self):
@@ -96,3 +104,11 @@ class CmdScreen(Screen):
 
     def disconnect_callback(self, task):
         self.manager.current = "connect"
+
+    #   helpers
+    def clear_templates_grid(self):
+        templates = self.ids.templates_grid
+        templates.clear_widgets()
+        # I cannot find the .clear() method in the documentation, but apparently it does work
+        # I found it in the O'reilly book about kivy
+        # also cannot find the kivy.properties.ObservableList class, which is the type of templates

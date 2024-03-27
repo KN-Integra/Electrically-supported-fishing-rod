@@ -13,6 +13,7 @@ CMD_ACT_TMPL = b"\x04"  # + string name
 DEVICE_NAME = "WyndkaTemplates"
 DEVICE_COUNT = 5
 
+
 @dataclass
 class Template:
     name: str
@@ -53,17 +54,20 @@ class BluetoothClient:
         return True
 
     async def cmd_scan(self) -> list[BLEDevice]:
-        return [BLEDevice(
-            address=f"F0:C2:DF:BE:FE:3{i}",
-            name="device{i}",
-            details="device{i} details",
-            rssi=10+i) 
-                for i in range(DEVICE_COUNT)]
+        return [
+            BLEDevice(
+                address=f"F0:C2:DF:BE:FE:3{i}",
+                name="device{i}",
+                details="device{i} details",
+                rssi=10 + i,
+            )
+            for i in range(DEVICE_COUNT)
+        ]
 
     async def cmd_autoconnect(self) -> bool:
         i = random.randint(1, DEVICE_COUNT)
         self.wyndka = (await self.cmd_scan())[i]
- 
+
         return True
 
     async def cmd_connect(self, addr: str) -> bool:
@@ -87,6 +91,7 @@ class BluetoothClient:
                 Template("Szczupak", 32000),
                 Template("Karp", 42000),
                 Template("makrela", 20000),
+                Template("morszczuk", 12000),
             ]
         )
 

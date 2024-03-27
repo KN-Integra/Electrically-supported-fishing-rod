@@ -1,13 +1,13 @@
 [app]
 
 # (str) Title of your application
-title = WyndkaTest
+title = Wyndka
 
 # (str) Package name
-package.name = myapp
+package.name = wyndka
 
 # (str) Package domain (needed for android/ios packaging)
-package.domain = org.test
+package.domain = agh.edu.pl
 
 # (str) Source code where the main.py live
 source.dir = .
@@ -29,7 +29,7 @@ source.include_exts = py,png,jpg,kv,atlas,ttf,txt
 #source.exclude_patterns = license,images/*/*.jpg
 
 # (str) Application versioning (method 1)
-version = 0.1
+version = 1.0
 
 # (str) Application versioning (method 2)
 # version.regex = __version__ = ['"](.*)['"]
@@ -37,7 +37,7 @@ version = 0.1
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,kivy,bleak,dbus-fast,typing-extensions,async-timeout
+requirements = python3,kivy,kivymd,bleak,dbus-fast,typing-extensions,async-timeout
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes

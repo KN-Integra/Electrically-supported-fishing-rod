@@ -8,13 +8,13 @@ import os
 from bluetoothclient import BluetoothClient
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
-HELP_PATH = os.path.join(script_dir, 'help.txt')
+HELP_PATH = os.path.join(script_dir, "help.txt")
 
 
 async def start_repl():
     HELP = ""
     try:
-        with open(HELP_PATH, 'r') as file:
+        with open(HELP_PATH, "r") as file:
             HELP = file.read()
     except FileNotFoundError:
         print("cannot locate help.txt")
@@ -27,9 +27,13 @@ async def start_repl():
     try:
         while running:
             try:
-                greeter = "|| WWE : connected || >> " if client.check_connection() else "|| WWE || >> "
+                greeter = (
+                    "|| WWE : connected || >> "
+                    if client.check_connection()
+                    else "|| WWE || >> "
+                )
                 _in = input(greeter)
-                cmd = _in.split(' ')
+                cmd = _in.split(" ")
                 if cmd[0] == "scan":
                     scan_result = await client.cmd_scan()
                     for device in scan_result:
