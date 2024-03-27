@@ -4,7 +4,7 @@
 <ConnectScreen>:
     canvas.before:
         Color:
-            rgba: utils.rgba("#ffffff")
+            rgba: app.theme_cls.bg_light if app.theme_cls.theme_style == "Light" else app.theme_cls.bg_darkest
         Rectangle:
             pos: self.pos
             size: self.size
@@ -17,7 +17,7 @@
         padding: "30dp"
 
         Image:
-            source: "media/integra-icon--light.png"
+            source: "media/integra-icon--light.png" if app.theme_cls.theme_style == "Light" else "media/integra-icon--dark.png"
             fit_mode: "contain"
             width: root.width
 
@@ -48,8 +48,8 @@
             line_width: 2
 
             theme_text_color: "Custom"
-            md_bg_color: app.theme_cls.primary_color
             text_color: app.theme_cls.text_color
+            md_bg_color: app.theme_cls.primary_light if app.theme_cls.theme_style == "Light" else app.theme_cls.primary_dark
 
         MDRectangleFlatButton:
             id: connect_button
@@ -64,8 +64,8 @@
             line_width: 2
 
             theme_text_color: "Custom"
-            line_color: app.theme_cls.accent_color
             text_color: app.theme_cls.text_color
+            line_color: app.theme_cls.accent_light if app.theme_cls.theme_style == "Light" else app.theme_cls.accent_dark
 
         BoxLayout:
             orientation: "horizontal"
@@ -122,6 +122,6 @@
             valign: "center"
 
         Image:
-            source: "media/nordic_logo.png"
+            source: "media/nordic_logo--light.png" if app.theme_cls.theme_style == "Light" else "media/nordic_logo--dark.png"
             size: self.texture_size
             fit_mode: "contain"

@@ -35,6 +35,9 @@ class FishingRodApp(MDApp):
 
         screen_manager = ScreenManager()
 
+        # HACK: to set dark theme
+        self.theme_cls.theme_style = "Dark"
+
         for screen in screens:
             screen_manager.add_widget(screen)
 
