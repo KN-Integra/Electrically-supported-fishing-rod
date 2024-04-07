@@ -4,7 +4,7 @@ skin rose
 
 title Electrically Supported Fishing Rod - "WWE Sumołów 2000"
 
-node HostAppDesktop {
+node "HostApp - Desktop Serial" {
   package Frontend{
     class MainWindow {
       - uint? TechnologyIndex
@@ -174,7 +174,7 @@ MainWindow  *--  GeneralSettings
 MainWindow  *--  InitOptions
 MainWindow  *--  ConnectionOptions
 
-node HostAppPython{
+node "HostApp - Mobile BT" {
   package KiviAndroidGui{
 
   }
@@ -202,30 +202,56 @@ node HostAppPython{
   DesktopRepl *.down. PythonBackend
 }
 
-node nRF52840Dongle{
+node nRF52840Dongle {
+  Struct MotorDriverChannel {
+    + pwm_dt_spec pwm_motor_driver
+    + gpio_dt_spec set_dir_pins[PINS_PER_CHANNEL]
+    + gpio_dt_spec enc_pins[PINS_PER_CHANNEL]
+    + gpio_callback enc_cb[PINS_PER_CHANNEL]
+    ..
+    + uint64_t count_cycles
+	  + uint64_t old_count_cycles
+    ..
+    + uint32_t target_speed_mrpm
+    + uint32_t actual_mrpm
+    + uint32_t speed_control
+    ..
+    + uint32_t curr_pos
+    + uint32_t target_position
+    + int32_t position_delta
+    + uint32_t max_pos
+    ..
+    + bool prev_val_enc[PINS_PER_CHANNEL]
+    + MotorDirection actual_dir
+    ..
+    + bool is_motor_on
+  }
+
+  MotorDriver *-left- MotorDriverChannel
+
   object MotorDriver {
     - DriverVersion driver_ver
-    - uint32_t target_speed_mrpm
-    - uint32_t actual_mrpm
-    - int32_t speed_control
-    - uint64_t count_cycles
-    - uint64_t old_count_cycles
-    - uint64_t count_timer
+    - DriverChannel drv_channel
     ..
     + int init_pwm_motor_driver(uint32_t speed_max_mrpm)
     ..
-    + int target_speed_set(uint32_t value)
-    - int speed_pwm_set(uint32_t value)
-    - void enc_ch1_callback()
-    - update_speed_continuus()
-    + int speed_get(uint32_t* value)
+    + int target_speed_set(uint32_t value, enum ChannelNumber chnl)
+    - int speed_pwm_set(uint32_t value, enum ChannelNumber chnl)
+    - void enc_callback()
+    - void update_speed_continuus()
+    + int speed_get(uint32_t* value, enum ChannelNumber chnl)
+    ..
+    + int set_direction_raw(enum MotorDirection direction, enum ChannelNumber chnl)
+    + int get_motor_actual_direction(enum ChannelNumber chnl, enum MotorDirection *out_dir)
     ..
     + int motor_on(MotorDirection direction)
     + int motor_off(void)
     ..
-    Mode Control - TODO
+    return_codes_t mode_set(enum ControlModes new_mode)
+    return_codes_t mode_get(enum ControlModes *value)
     ..
-    Position Control - TODO
+    return_codes_t target_position_set(uint32_t new_target_position, enum ChannelNumber chnl)
+    return_codes_t position_get(uint32_t *value, enum ChannelNumber chnl)
     ..
     + void enter_boot(void)
     + uint32_t get_current_max_speed(void)
@@ -234,10 +260,68 @@ node nRF52840Dongle{
     + DriverVersion get_driver_version(void)
   }
 
-  package BLE{
+  object NvmStorageDriver {
+    + return_codes_t get_templates(struct Template *templates)
+    + return_codes_t get_template_and_id_by_name(char *name, struct Template *result, uint8_t *out_id)
+    + return_codes_t set_template(struct Template new_template)
+    + uint8_t get_template_size(void)
+    + return_codes_t remove_template_by_name(char *name)
+
+    + void init_storage(void)
+    + return_codes_t factory_reset(void)
+
+    + return_codes_t get_current_template(struct Template *result)
+    + return_codes_t set_current_template(char *name)
+
+    + int get_errno_error_code(void)
+    + unsigned int get_errno_error_line(void)
+  }
+
+  package serial_shell {
+    object shell_direct_motor_control {
+      - int cmd_speed()
+      - int cmd_position()
+      - int cmd_mode()
+      - int cmd_actual_direction()
+    }
+
+    object shell_off_on {
+      - int cmd_off_on_get()
+      - int cmd_off_on_stop()
+      - int cmd_off_on_start_forward()
+      - int cmd_off_on_start_backward()
+    }
+
+    object shell_template {
+      - int cmd_template_active()
+      - int cmd_template_get()
+      - int cmd_template_apply()
+      - int cmd_template_set()
+      - int cmd_template_clear()
+      - int cmd_template_size()
+    }
+
+    object shell_utils {
+      - int cmd_channel()
+      - int cmd_drv_version()
+      - int cmd_boot()
+    }
+  }
+
+  package BLE {
     object ble_gatt {
-      - read_ble()
-      - write_ble()
+      + SERVICE_UUID = 0xffaa
+      + TX_CHAR_UUID_COMMAND = 0x6e006610
+      + RX_CHAR_UUID_TEMPL_LIST = 0x6e006620
+      + RX_CHAR_UUID_TEMPL_ACTIVE = 0x6e006621
+      + RX_CHAR_UUID_SPEED = 0x6e006622
+      + RX_CHAR_UUID_HW_VER = 0x6e006623
+      + ssize_t read_ble_template_list()
+      + ssize_t read_ble_template_active()
+      + ssize_t read_ble_speed()
+      + ssize_t read_ble_hw_ver()
+      - convertToUint32(uint8_t *bytes)
+      + ssize_t write_ble()
     }
 
     object ble_gatt_service {
@@ -246,15 +330,8 @@ node nRF52840Dongle{
       - disconnected()
       - bt_ready()
       - auth_cancel()
+      - struct bt_data ad[2]
     }
-  }
-
-  object serial_shell {
-    - int cmd_init()
-    - int cmd_speed()
-    - int cmd_off_on()
-    - int cmd_boot()
-    - int cmd_drv_version()
   }
 
   object button {
@@ -271,6 +348,7 @@ node nRF52840Dongle{
     }
 
     Enum MotorDirection_C{
+      STOPPED,
       FORWARD,
       BACKWARD
     }
@@ -278,6 +356,16 @@ node nRF52840Dongle{
     Enum ControlModes_C {
       SPEED,
       POSITION
+    }
+
+    Enum ChannelNumber {
+      CH0,
+      CH1
+    }
+
+    Enum PinNumber {
+      P0,
+      P1
     }
 
     Struct DriverVersion {
@@ -289,14 +377,17 @@ node nRF52840Dongle{
 
 
 
-serial_shell .down. CallbackSerialShell
+serial_shell .... CallbackSerialShell
 
-BLE .down. HostAppPython
+BLE .... "HostApp - Mobile BT"
 
-MotorDriver <.down. serial_shell
-MotorDriver <.down. BLE
+MotorDriver <... serial_shell
+MotorDriver <... BLE
 
-MotorDriver <.left.. button
+NvmStorageDriver <. serial_shell
+MotorDriver <. NvmStorageDriver
+
+MotorDriver <. button
 
 driver_utlis <. MotorDriver
 
