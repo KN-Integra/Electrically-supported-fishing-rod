@@ -14,7 +14,7 @@ READ_CHARACTERISTIC_TEMPL_ACT_UUID = "6e006621-37de-44d4-be45-d1f1fd9385fd"
 READ_SPEED_CHARACTERISTIC_UUID = "6e006622-37de-44d4-be45-d1f1fd9385fd"
 READ_HW_VERSION_CHARACTERISTIC_UUID = "6e006623-37de-44d4-be45-d1f1fd9385fd"
 
-DEVICE_NAME = "Motor Controller"
+DEVICE_NAME = "Wyndka"
 
 
 @dataclass
@@ -28,6 +28,11 @@ class Template:
             self.name[:11].encode(encoding="utf-8")
             + (12 - len(self.name[:11])) * b"\0"
             + int.to_bytes(self.speed, length=4, byteorder="big")
+        )
+
+    def name_to_bytes(self):
+        return (
+            self.name[:11].encode(encoding="utf-8") + b"\0"
         )
 
 
@@ -105,15 +110,14 @@ class BluetoothClient:
             0 - name\n
             1 - speed
         """
-        match type:
-            case 0:
-                start = 4 + (field_no) * (text_len + 4)
-                return (start, start + text_len)
-            case 1:
-                start = (4 + (field_no) * (text_len + 4)) + text_len
-                return (start, start + 4)
-            case _:
-                return (0, 0)
+        if type==0:
+            start = 4 + (field_no) * (text_len + 4)
+            return (start, start + text_len)
+        elif type==1:
+            start = (4 + (field_no) * (text_len + 4)) + text_len
+            return (start, start + 4)
+        else:
+            return (0, 0)
 
     def get_field_data(self, sd: bytearray, field_no: int, text_len: int) -> Template:
         bounds_name = self.calc_bounds_for(0, field_no, text_len)
@@ -169,13 +173,15 @@ class BluetoothClient:
             logging.info(self.curr_templ)
         except Exception as e:
             print(e)
+            self.curr_templ = Template(name="no_data",speed=0)
+
 
     async def set_active_template(self, templ: Template) -> None:
         logging.info("setting active template")
         cmd = CMD_ACT_TMPL + templ.to_bytes()
         try:
             await self.wyndka_client.write_gatt_char(
-                WRITE_CMD_CHARACTERISTIC_UUID, cmd, response=False
+                WRITE_CMD_CHARACTERISTIC_UUID, cmd, response=True
             )
         except Exception as e:
             logging.error(e)
@@ -185,17 +191,17 @@ class BluetoothClient:
         cmd = CMD_ADD_TMPL + templ.to_bytes()
         try:
             await self.wyndka_client.write_gatt_char(
-                WRITE_CMD_CHARACTERISTIC_UUID, cmd, response=False
+                WRITE_CMD_CHARACTERISTIC_UUID, cmd, response=True
             )
         except Exception as e:
             logging.error(e)
 
     async def delete_template(self, templ: Template) -> None:
-        logging.info("creating new template")
-        cmd = CMD_DEL_TMPL + templ.to_bytes()
+        logging.info("Removing template")
+        cmd = CMD_DEL_TMPL + templ.name_to_bytes()
         try:
             await self.wyndka_client.write_gatt_char(
-                WRITE_CMD_CHARACTERISTIC_UUID, cmd, response=False
+                WRITE_CMD_CHARACTERISTIC_UUID, cmd, response=True
             )
         except Exception as e:
             logging.error(e)
@@ -225,7 +231,7 @@ class BluetoothClient:
                 + speed_val.to_bytes(4, byteorder="big", signed=False)
             )
             await self.wyndka_client.write_gatt_char(
-                WRITE_CMD_CHARACTERISTIC_UUID, cmd, response=False
+                WRITE_CMD_CHARACTERISTIC_UUID, cmd, response=True
             )
         except Exception as e:
             print(e)

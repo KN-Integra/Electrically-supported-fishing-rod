@@ -50,9 +50,9 @@ class FishingRodApp(MDApp):
         pass
 
 
-async def main(app):
+async def main():
+    app = FishingRodApp()
     await asyncio.gather(app.async_run("asyncio"))
 
 if __name__ == '__main__':
-    app = FishingRodApp()
-    asyncio.run(main(app))
+    asyncio.run(main())
