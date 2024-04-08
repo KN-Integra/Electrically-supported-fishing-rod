@@ -1,5 +1,7 @@
 import asyncio
 import logging
+
+from kivy.clock import Clock
 from kivy.app import App
 from kivy.uix.screenmanager import Screen
 from bluetoothclient import BluetoothClient, Template
@@ -41,12 +43,14 @@ class CmdScreen(Screen):
     def templates_update_callback(self, task):
         # templates_view = self.ids.templates_view
         inspector.create_inspector(Window, self)
-        self.update_templates_grid()
+        Clock.schedule_once(self.update_templates_grid)
 
     def template_add(self):
+        name = self.ids.new_template_name.text
+        speed = self.ids.new_template_speed.text
         templ = Template(
-            name=self.ids.new_template_name.text,
-            speed=int(self.ids.new_template_speed.text),
+            name=name,
+            speed=int(speed) if len(speed) > 0 else 0
         )
         logging.info(templ)
         template_add_task = asyncio.create_task(self.BLEClient.create_template(templ))
@@ -58,10 +62,10 @@ class CmdScreen(Screen):
         self.update_templates_grid()
         # add_button.ids.new_template_speed.
 
-    def update_templates_grid(self):
+    def update_templates_grid(self, *args):
         logging.info("clearaing widget")
         templates_grid = self.ids.templates_grid
-        # templates_grid.clear_widgets()
+        templates_grid.clear_widgets()
         logging.info("widgets should be cleared")
         templates_grid.bind(minimum_height=templates_grid.setter("height"))
         templates = self.BLEClient.template_list
@@ -105,8 +109,8 @@ class CmdScreen(Screen):
         
 #   helpers
     def clear_templates_grid(self):
-        templates = self.ids.templates_grid.children
-        templates.clear()
+        templates = self.ids.templates_grid
+        templates.clear_widgets()
         # I cannot find the .clear() method in the documentation, but apparently it does work
         # I found it in the O'reilly book about kivy
         # also cannot find the kivy.properties.ObservableList class, which is the type of templates

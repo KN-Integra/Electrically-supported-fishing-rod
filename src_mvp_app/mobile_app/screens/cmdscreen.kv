@@ -80,30 +80,45 @@
                 input_type: "number"
 
             MDFloatingActionButton:
-                # on_release: root.template_add()
-                # TODO: Remove when template adding is implemented; this is just for testing theme change
-                on_press: self.theme_cls.theme_style = "Dark" if self.theme_cls.theme_style == "Light" else "Light"
+                on_release: root.template_add()
 
                 icon: "plus"
                 md_bg_color: app.theme_cls.icon_color if app.theme_cls.theme_style == "Light" else app.theme_cls.opposite_icon_color
 
-        MDRectangleFlatButton:
-            text: "Enter Bootloader"
-            on_release: root.enter_bootloader()
-            disabled: self.state == "normal"
-
-            font_size: "25dp"
-
-            padding: "25dp"
-            width: root.width - 60
-
-            line_width: 2
-            line_color: app.theme_cls.accent_color
-
-            theme_text_color: "Custom"
-            text_color: app.theme_cls.text_color
+        MDBoxLayout:
+            orientation: "horizontal"
+            size_hint_y: None
             
-            # md_bg_color: utils.rgba("#fbbf24") if self.state=="normal" else utils.rgba("#f59e0b")
+            MDRectangleFlatButton:
+                text: "Bootloader"
+                on_release: root.enter_bootloader()
+                disabled: self.state == "normal"
+
+                font_size: "20dp"
+
+                padding: "25dp"
+                width: root.width - 60
+                size_hint_x: 0.6
+
+                line_width: 2
+                line_color: app.theme_cls.accent_color
+
+                theme_text_color: "Custom"
+                text_color: app.theme_cls.text_color
+                
+                # md_bg_color: utils.rgba("#fbbf24") if self.state=="normal" else utils.rgba("#f59e0b")
+            
+            MDRectangleFlatButton:
+                text: "change theme"
+                size_hint_x: 0.2
+
+                font_size: "20dp"
+                padding: "25dp"
+                
+                lnie_width: 2
+                theme_text_color: "Custom"
+
+                on_press: self.theme_cls.theme_style = "Dark" if self.theme_cls.theme_style == "Light" else "Light"
 
         MDRaisedButton:
             text: "Disconnect"

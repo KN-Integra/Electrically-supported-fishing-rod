@@ -14,7 +14,7 @@ READ_CHARACTERISTIC_TEMPL_ACT_UUID = "6e006621-37de-44d4-be45-d1f1fd9385fd"
 READ_SPEED_CHARACTERISTIC_UUID = "6e006622-37de-44d4-be45-d1f1fd9385fd"
 READ_HW_VERSION_CHARACTERISTIC_UUID = "6e006623-37de-44d4-be45-d1f1fd9385fd"
 
-DEVICE_NAME = "WyndkaTemplates"
+DEVICE_NAME = "Motor Controller"
 
 
 @dataclass
@@ -22,10 +22,11 @@ class Template:
     name: str
     speed: int
 
+    # TODO: make it responsive with different name sizes
     def to_bytes(self):
         return (
-            self.name.encode(encoding="utf-8")
-            + (12 - len(self.name)) * b"\0"
+            self.name[:11].encode(encoding="utf-8")
+            + (12 - len(self.name[:11])) * b"\0"
             + int.to_bytes(self.speed, length=4, byteorder="big")
         )
 
@@ -36,7 +37,7 @@ class TemplateList:
 
 
 @dataclass
-class TemplatConfig:
+class TemplatConfig:    
     length: int
     page_no: int
     template_count: int
@@ -48,7 +49,6 @@ class BluetoothClient:
         self.scanner: BleakScanner = BleakScanner()
         self.wyndka_client: BleakClient = None
         self.wyndka: BLEDevice = None
-        # TODO: make class Template instead of this filthy dicts
         self.template_list: TemplateList
         self.template_config: TemplatConfig
         self.curr_templ: Template

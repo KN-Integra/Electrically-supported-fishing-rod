@@ -25,6 +25,7 @@
     pos_hint: {"center_x": 0.5, "center_y": 0.15}
 
     text: "aktywuj"
+    font_size: "18dp"
     on_touch_down:
         if self.collide_point(*args[1].pos): root.dispatch('on_button_touch', self.parent.id)
 
@@ -53,7 +54,7 @@
         theme_text_color: "Custom"
         text_color: app.theme_cls.text_color
         
-        pos_hint: {"center_x": 0.5, "center_y": 0.5}
+        pos_hint: {"center_x": 0.5, "center_y": 0.6}
         padding: "20dp"
 
     MDLabel:
@@ -65,7 +66,7 @@
         theme_text_color: "Custom"
         text_color: app.theme_cls.secondary_text_color
 
-        pos_hint: {"center_y": 0.3, "center_x": 0.5}
+        pos_hint: {"center_y": 0.4, "center_x": 0.5}
         padding: "20dp" 
 
     TemplateButtonDelete:
