@@ -7,3 +7,6 @@
 [submodule "EE_schematics"]
 	path = EE_schematics
 	url = git@github.com:KN-Integra/Electrically-supported-fishing-rod-hardware.git
+[submodule "src_Hostapp_py"]
+	path = src_Hostapp_py
+	url = git@github.com:KN-Integra/Electrically-supported-fishing-rod-mobile-hostapp-py.git

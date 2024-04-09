@@ -5,3 +5,5 @@ junitparser>=2
 pylint
 yamllint
 gitlint
+bleak
+kivy
