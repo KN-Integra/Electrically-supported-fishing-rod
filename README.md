@@ -5,3 +5,5 @@ https://devzone.nordicsemi.com/cfs-file/__key/support-attachments/beef5d1b77644c
 https://infocenter.nordicsemi.com/pdf/nRF52840_Dongle_User_Guide_v1.0.pdf?fbclid=IwAR2W6q7lHp_oiKpMl_5FmqXFdjsBxmzAbhWaBgxAxwu9aFuo_0AEuCrDiJs
 
 https://drive.google.com/drive/folders/1soIZqvbjTYA_fR7IgqiSM9d02fvre1W5
+
+![image](./UML_Diagram/out/SystemDiagram/WWE.png)
