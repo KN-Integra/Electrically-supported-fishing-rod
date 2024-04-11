@@ -8,11 +8,13 @@ set(CONTROLLER_PATH "MotorControllerFirmware/BrushedMotorControllerFirmware")
 
 target_include_directories(app PRIVATE
      "${CONTROLLER_PATH}/include"
+     "${CONTROLLER_PATH}/include/*"
      "src"
 )
 
 file(GLOB SRC_files_MC
      "${CONTROLLER_PATH}/include/*.c"
+     "${CONTROLLER_PATH}/include/**/*.c"
 )
 
 file(GLOB SRC_files
